@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Keşf-i Edirne",
+  title: "EdirneGez - Saklı Hazineleri Keşfet",
   description:
     "Edirne'nin az bilinen güzelliklerini keşfedin. Kişiliğinize uygun rotalar ile unutulmaz deneyimler yaşayın.",
 };

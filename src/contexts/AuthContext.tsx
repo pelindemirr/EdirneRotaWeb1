@@ -7,6 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { User } from "@/types";
 
 interface AuthContextType {
@@ -38,6 +39,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedInState] = useState(false);
   const [user, setUserState] = useState<User | null>(null);
   const [showLogin, setShowLogin] = useState(false);
@@ -89,6 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     setIsLoggedIn(false);
+    router.push("/");
   };
 
   const value = {

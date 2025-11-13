@@ -74,28 +74,18 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import dynamic from "next/dynamic";
-
-const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
-  ssr: false,
-});
-const Polyline = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Polyline),
-  { ssr: false }
-);
-
 import { places, Place } from "@/mock/places";
+
+// Leaflet bileşenini ayrı component olarak yükle
+const LeafletMap = dynamic(() => import("../../components/LeafletMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full flex items-center justify-center bg-gray-100">
+      <div className="text-gray-500 animate-pulse">Harita yükleniyor...</div>
+    </div>
+  ),
+});
+
 import { SortableRouteItem } from "./SortableRouteItem";
 
 export default function RotaPlanlaPage() {
@@ -104,6 +94,7 @@ export default function RotaPlanlaPage() {
   const [selectedPlaces, setSelectedPlaces] = useState<Place[]>([]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [districtFilter, setDistrictFilter] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>(
@@ -274,6 +265,19 @@ export default function RotaPlanlaPage() {
     "Müze",
   ];
 
+  const districts = [
+    "Tüm İlçeler",
+    "Merkez",
+    "Keşan",
+    "İpsala",
+    "Uzunköprü",
+    "Havsa",
+    "Enez",
+    "Lalapaşa",
+    "Meriç",
+    "Süloğlu",
+  ];
+
   const addPlace = (place: Place) => {
     if (!selectedPlaces.some((p) => p.id === place.id)) {
       setSelectedPlaces([...selectedPlaces, place]);
@@ -321,16 +325,29 @@ export default function RotaPlanlaPage() {
 
   const filteredPlaces = places
     .filter((p) => {
+      // İlçe filtresi
+      if (districtFilter && p.district !== districtFilter) {
+        return false;
+      }
+
+      // Kategori filtresi
       if (categoryFilter === "Favorilerim") {
         return favorites.includes(p.id);
       }
-      if (categoryFilter === "Popüler") return p.popular;
+      if (categoryFilter === "Popüler") {
+        return p.popular === true;
+      }
       if (categoryFilter && categoryFilter !== "Tüm Mekanlar") {
         return p.category === categoryFilter;
       }
+
       return true;
     })
-    .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
+    .filter((p) => {
+      // Sadece isimde ara
+      if (!search.trim()) return true;
+      return p.name.toLowerCase().includes(search.toLowerCase().trim());
+    });
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
@@ -379,6 +396,24 @@ export default function RotaPlanlaPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
+              </div>
+
+              {/* İlçe Filtresi */}
+              <div className="mb-3">
+                <select
+                  value={districtFilter}
+                  onChange={(e) => setDistrictFilter(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 hover:border-red-300 bg-white cursor-pointer"
+                >
+                  {districts.map((district) => (
+                    <option
+                      key={district}
+                      value={district === "Tüm İlçeler" ? "" : district}
+                    >
+                      {district}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Kategori Chip'leri */}
@@ -510,46 +545,11 @@ export default function RotaPlanlaPage() {
                 </span>
               )}
             </div>
-            {isMounted ? (
-              <MapContainer
-                key="main-map"
-                center={[41.6772, 26.555]}
-                zoom={13}
-                className="w-full"
-                style={{ height: "calc(100% - 42px)" }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                />
-
-                {selectedPlaces.map((place) => (
-                  <Marker key={place.id} position={[place.lat, place.lng]}>
-                    <Popup>
-                      <div className="font-semibold text-center">
-                        <span className="text-2xl">{place.icon}</span>
-                        <br />
-                        {place.name}
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-
-                {routeCoordinates.length > 1 && (
-                  <Polyline
-                    positions={routeCoordinates}
-                    color="#ef4444"
-                    weight={4}
-                    opacity={0.8}
-                  />
-                )}
-              </MapContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center bg-gray-100">
-                <div className="text-gray-500 animate-pulse">
-                  Harita yükleniyor...
-                </div>
-              </div>
+            {isMounted && (
+              <LeafletMap
+                selectedPlaces={selectedPlaces}
+                routeCoordinates={routeCoordinates}
+              />
             )}
           </div>
           {/* Sağ - Seçilen Rota */}
@@ -709,32 +709,161 @@ export default function RotaPlanlaPage() {
                       {isSaving ? "Kaydediliyor..." : "Rotayı Kaydet ve Paylaş"}
                     </button>
                     {saveSuccess && shareUrl && (
-                      <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-green-50 to-green-100 border border-green-200 shadow flex flex-col items-center animate-in slide-in-from-bottom">
-                        <div className="text-green-700 font-semibold mb-2">
-                          Rota başarıyla kaydedildi!
-                        </div>
-                        <div className="flex flex-col gap-2 w-full">
-                          <button
-                            onClick={shareOnWhatsApp}
-                            className="w-full bg-green-500 hover:bg-green-600 text-white py-1.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200 hover:scale-105 shadow-md"
-                          >
-                            📲 WhatsApp ile Paylaş
-                          </button>
-                          <button
-                            onClick={handleCopy}
-                            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-1.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200 hover:scale-105 shadow-md"
-                          >
-                            {copySuccess ? "Kopyalandı!" : "🔗 Linki Kopyala"}
-                          </button>
-                        </div>
-                        <div className="flex flex-col items-center mt-2 p-3 bg-white rounded-lg border border-gray-100">
-                          <QRCodeCanvas value={shareUrl} size={100} />
-                          <span className="text-xs text-gray-500 mt-1">
-                            QR ile paylaş
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-gray-500 mt-2">
-                          Linki arkadaşlarınla paylaşabilirsin.
+                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-in slide-in-from-bottom duration-300">
+                          {/* Header */}
+                          <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 relative">
+                            <button
+                              onClick={() => {
+                                setSaveSuccess(false);
+                                setShareUrl("");
+                              }}
+                              className="absolute top-3 right-3 text-white/80 hover:text-white transition-colors"
+                            >
+                              <svg
+                                className="w-6 h-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                            <div className="flex flex-col items-center text-white">
+                              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-3">
+                                <svg
+                                  className="w-8 h-8"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </div>
+                              <h3 className="text-xl font-bold">
+                                Rota Başarıyla Kaydedildi!
+                              </h3>
+                              <p className="text-sm text-white/90 mt-1">
+                                Rotanızı şimdi paylaşabilirsiniz
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-6 space-y-4">
+                            {/* QR Code */}
+                            <div className="flex justify-center">
+                              <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
+                                <QRCodeCanvas value={shareUrl} size={140} />
+                              </div>
+                            </div>
+
+                            <div className="text-center">
+                              <p className="text-xs text-gray-500">
+                                QR kodu telefonunuzla taratarak rotayı
+                                görüntüleyebilirsiniz
+                              </p>
+                            </div>
+
+                            {/* Share Buttons */}
+                            <div className="space-y-2">
+                              <button
+                                onClick={shareOnWhatsApp}
+                                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-3 transition-all duration-200 hover:scale-105 shadow-lg"
+                              >
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                                </svg>
+                                WhatsApp ile Paylaş
+                              </button>
+
+                              <button
+                                onClick={handleCopy}
+                                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-3 transition-all duration-200 hover:scale-105 shadow-lg"
+                              >
+                                {copySuccess ? (
+                                  <>
+                                    <svg
+                                      className="w-5 h-5"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M5 13l4 4L19 7"
+                                      />
+                                    </svg>
+                                    Kopyalandı!
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg
+                                      className="w-5 h-5"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                      />
+                                    </svg>
+                                    Linki Kopyala
+                                  </>
+                                )}
+                              </button>
+
+                              {/* Share Link Display */}
+                              <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                <div className="text-xs text-gray-500 mb-1">
+                                  Paylaşım Linki:
+                                </div>
+                                <div className="text-sm text-gray-700 font-mono break-all">
+                                  {shareUrl}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                              <svg
+                                className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                              <p className="text-xs text-blue-700">
+                                Bu linki arkadaşlarınızla paylaşarak onların da
+                                rotanızı görmesini sağlayabilirsiniz.
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}

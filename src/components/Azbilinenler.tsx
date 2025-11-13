@@ -165,7 +165,7 @@ const HiddenGemsSlider = () => {
               {hiddenGems.map((gem) => (
                 <div
                   key={gem.id}
-                  className="flex-shrink-0 px-2 md:px-4"
+                  className="flex-shrink-0 px-2 md:px-4 py-4"
                   style={{ width: `${100 / itemsToShow}%` }}
                 >
                   <div

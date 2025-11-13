@@ -157,6 +157,64 @@ const UpcomingEvents = () => {
       image: "/assets/images/upcoming/sergi.png", // Yerel: Ata'ya Saygı Sergisi
     },
     {
+      id: 8,
+      category: "sanat",
+      eventDate: "2025-11-18", // 18 Kasım 2025
+      date: { day: "18", month: "KAS" },
+      icon: "📸",
+      title: "Edirne Çarşılarına Fotoğraflarla Sosyolojik Bakış",
+      subtitle: "Fotoğraf Sergisi",
+      description:
+        "Edirne Belediyesi'nin düzenlediği özel fotoğraf sergisi. Edirne'nin tarihi çarşılarının sosyolojik açıdan incelendiği, fotoğraflarla belgelendiği bu sergi, şehrin kültürel dokusunu yansıtıyor.",
+      dateRange: "18 Kasım 2025",
+      location: "Atatürk Kültür Merkezi",
+      image: "/assets/images/upcoming/sergibelediye.png", // Görsel daha sonra eklenecek
+    },
+    {
+      id: 9,
+      category: "sanat",
+      eventDate: "2025-11-13", // 13 Kasım 2025 (Çarşamba)
+      date: { day: "13", month: "KAS" },
+      icon: "🎨",
+      title: "Obje Boyama Atölyesi",
+      subtitle: "Atölye - Hafta İçi",
+      description:
+        "Her gün 16:00-18:00 arası düzenlenen yaratıcı obje boyama atölyesi. Öğrencilere özel 50 TL indirim fırsatıyla! Sanatsal yeteneğinizi keşfedin ve eğlenceli vakit geçirin.",
+      dateRange: "Her Gün 16:00-18:00 (Hafta İçi)",
+      location: "Edirne Oda Sahnesi",
+      image: "/assets/images/upcoming/objeatolyesii.jpeg", // Görsel daha sonra eklenecek
+      note: "🎓 Öğrencilere 50 TL İndirim",
+    },
+    {
+      id: 10,
+      category: "sanat",
+      eventDate: "2025-11-16", // 16 Kasım 2025 (Cumartesi)
+      date: { day: "16", month: "KAS" },
+      icon: "🎨",
+      title: "Obje Boyama Atölyesi",
+      subtitle: "Atölye - Hafta Sonu",
+      description:
+        "Cumartesi ve Pazar günleri 14:00-18:00 arası düzenlenen yaratıcı obje boyama atölyesi. Hafta sonu ailenizle veya arkadaşlarınızla keyifli saatler geçirin. Öğrencilere özel 50 TL indirim!",
+      dateRange: "Cumartesi & Pazar 14:00-18:00",
+      location: "Edirne Oda Sahnesi",
+      image: "/assets/images/upcoming/objeatolyesii.jpeg", // Görsel daha sonra eklenecek
+      note: "🎓 Öğrencilere 50 TL İndirim",
+    },
+    {
+      id: 11,
+      category: "sanat",
+      eventDate: "2025-11-29", // 29 Kasım 2025
+      date: { day: "29", month: "KAS" },
+      icon: "🎭",
+      title: "İçimizdeki Şeytan",
+      subtitle: "Tiyatro Oyunu",
+      description:
+        "Unutulmaz bir tiyatro deneyimi için hazır olun! İçimizdeki Şeytan, insan doğasının karanlık yönlerini derinlemesine işleyen, sürükleyici bir performans sunuyor. Profesyonel oyuncu kadrosu ve etkileyici sahneleme ile unutulmaz bir akşam geçirin.",
+      dateRange: "29 Kasım 2025, 19:30",
+      location: "Atatürk Kültür Merkezi",
+      image: "/assets/images/upcoming/icimizdekiseytan.jpeg", // Görsel daha sonra eklenecek
+    },
+    {
       id: 7,
       category: "gastronomi",
       eventDate: "2025-09-10", // 10 Eylül 2025
@@ -316,7 +374,7 @@ const UpcomingEvents = () => {
               {events.map((event, index: number) => (
                 <div
                   key={event.id}
-                  className="flex-shrink-0 px-2 md:px-4"
+                  className="flex-shrink-0 px-2 md:px-4 py-4"
                   style={{ width: `${100 / itemsToShow}%` }}
                 >
                   <div
@@ -326,7 +384,7 @@ const UpcomingEvents = () => {
                       .replace("bg-", "border-")
                       .replace("-600", "-200")} hover:${event.seasonBg
                       .replace("bg-", "border-")
-                      .replace("-600", "-400")} h-full`}
+                      .replace("-600", "-400")} h-full flex flex-col`}
                     onMouseEnter={() => setIsAutoPlaying(false)}
                     onMouseLeave={() => setIsAutoPlaying(true)}
                   >
@@ -358,7 +416,7 @@ const UpcomingEvents = () => {
                       </div>
                     </div>
 
-                    <div className="p-4 md:p-6">
+                    <div className="p-4 md:p-6 flex flex-col flex-grow">
                       <div className="flex items-start gap-3 mb-4">
                         <div
                           className={`w-12 h-12 ${event.iconBg} rounded-xl flex items-center justify-center flex-shrink-0`}
@@ -392,11 +450,26 @@ const UpcomingEvents = () => {
                           />
                           {event.location}
                         </div>
+                        {event.note && (
+                          <div
+                            className={`mt-2 p-2 rounded-lg ${
+                              event.iconBg
+                            } border-2 ${event.seasonBg
+                              .replace("bg-", "border-")
+                              .replace("-600", "-200")}`}
+                          >
+                            <p
+                              className={`text-xs font-semibold ${event.iconColor} text-center`}
+                            >
+                              {event.note}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="mt-auto">
                         <button
-                          className={`flex-1 ${event.buttonBg} text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors`}
+                          className={`w-full ${event.buttonBg} text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors`}
                         >
                           Detaylar
                         </button>

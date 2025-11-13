@@ -26,7 +26,43 @@ function Header() {
   const [showRouteButton, setShowRouteButton] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [eurToTry, setEurToTry] = useState<string>("...");
   const { isLoggedIn, user, logout, isFirstLogin } = useAuth();
+
+  // ECB API'sinden EUR/TRY kurunu çek
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      try {
+        const response = await fetch("/api/exchange-rate");
+        const data = await response.json();
+
+        if (data.rate) {
+          setEurToTry(data.rate);
+        } else {
+          setEurToTry("--");
+        }
+      } catch (error) {
+        console.error("Döviz kuru alınamadı:", error);
+        setEurToTry("--");
+      }
+    };
+
+    fetchExchangeRate();
+    // Her 1 saatte bir güncelle
+    const interval = setInterval(fetchExchangeRate, 3600000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // localStorage'dan karakter tipini oku
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedCharacter = localStorage.getItem("selectedCharacter");
+      if (savedCharacter) {
+        setSelectedCharacter(savedCharacter);
+      }
+    }
+  }, []);
+
   // Show character modal only once after login
   useEffect(() => {
     if (isLoggedIn && typeof window !== "undefined") {
@@ -41,6 +77,10 @@ function Header() {
   const handleCharacterSelect = (type: string) => {
     setSelectedCharacter(type);
     setShowRouteButton(true);
+    // localStorage'a kaydet
+    if (typeof window !== "undefined") {
+      localStorage.setItem("selectedCharacter", type);
+    }
   };
 
   const handleShowRoute = () => {
@@ -166,13 +206,13 @@ function Header() {
                 href="/"
                 className="flex items-center space-x-3 hover:opacity-90 transition-all duration-300 group"
               >
-                <div className="relative group-hover:scale-110 transition-transform duration-300">
+                <div className="relative scale-150 group-hover:scale-[1.35] transition-transform duration-300 ">
                   <Image
-                    src="/assets/images/logo1.png"
+                    src="/assets/images/logoirems.png"
                     alt="Edirne Rota Logo"
-                    width={48}
-                    height={48}
-                    className="w-20 h-20 "
+                    width={90}
+                    height={90}
+                    className="w-20 h-20"
                     priority
                   />
                 </div>
@@ -236,10 +276,11 @@ function Header() {
 
             <div className="flex items-center space-x-6">
               <div className="hidden lg:flex items-center space-x-4">
-                <div className="flex items-center space-x-1 text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
-                  <DollarSign size={16} />
-                  <span className="font-semibold">₺</span>
-                  <span className="font-bold">1 = £2.50</span>
+                <div className="flex items-center space-x-2 text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+                  <span className="text-sm font-bold">€1 =</span>
+                  <span className="font-bold text-sm  text-gray-800">
+                    ₺{eurToTry}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2 text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
                   {/* Hava durumu iconu ve derece */}

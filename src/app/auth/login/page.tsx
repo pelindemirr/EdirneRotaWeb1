@@ -86,14 +86,14 @@ export default function EnhancedLoginPage() {
   const [currentSpot, setCurrentSpot] = useState(0);
 
   const mockUsers = {
-    "test@edirne.com": {
-      password: "123456",
-      name: "Test Kullanıcısı",
+    "enginmeric@gmail.com": {
+      password: "123",
+      name: "Engin Meriç",
       id: "1",
     },
-    "admin@edirne.com": {
+    "pelindemir@gmail.com": {
       password: "123",
-      name: "Admin",
+      name: "Pelin Demir",
       id: "2",
     },
   };
@@ -114,7 +114,7 @@ export default function EnhancedLoginPage() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const user = (
-      mockUsers as Record<string, (typeof mockUsers)["test@edirne.com"]>
+      mockUsers as Record<string, (typeof mockUsers)["enginmeric@gmail.com"]>
     )[formData.email];
 
     if (!user) {
@@ -130,6 +130,10 @@ export default function EnhancedLoginPage() {
     }
 
     login({ id: user.id, name: user.name, email: formData.email });
+
+    // Karakter seçim modalının açılması için localStorage'ı temizle
+    localStorage.removeItem("characterModalShown");
+
     setIsLoading(false);
     router.push("/");
   };
@@ -179,12 +183,10 @@ export default function EnhancedLoginPage() {
           {/* Left Side - Animated Carousel */}
           <div className="hidden lg:block space-y-6">
             <div className="space-y-4">
-              <h1 className="text-5xl font-black bg-gradient-to-r from-red-600 via-red-300 to-red-200 bg-clip-text text-transparent">
-                Edirne'nin
+              <h1 className="text-4xl font-black bg-gradient-to-r from-red-600 via-red-300 to-red-200 bg-clip-text text-transparent">
+                Edirne'nin Gizli Rotaları
               </h1>
-              <h2 className="text-4xl font-black bg-gradient-to-r from-red-600 via-red-300 to-red-900 bg-clip-text text-transparent">
-                Gizli Rotaları
-              </h2>
+              <h2 className="text-4xl font-black bg-gradient-to-r from-red-600 via-red-300 to-red-900 bg-clip-text text-transparent"></h2>
               <p className="text-slate-600 text-lg">
                 Keşfedilmemiş güzellikleri sizin için derledik
               </p>
@@ -284,48 +286,18 @@ export default function EnhancedLoginPage() {
             </div>
 
             {/* Login Card */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-slate-200 shadow-2xl overflow-hidden">
+            <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-slate-200 shadow-2xl overflow-hidden pt-0">
               {/* Card Header */}
-              <div className="bg-gradient-to-r from-red-600 to-red-300 p-6 text-center">
-                <h3 className="text-2xl font-bold text-white mb-1">
+              <div className="bg-gradient-to-r from-red-600 to-red-300 p-3 text-center">
+                <h3 className="text-xl font-bold text-white mb-1">
                   Hoş Geldiniz
                 </h3>
-                <p className="text-[#FFFFFA] text-sm font-semibold">
+                <p className="text-[#FFFFFA] text-s font-semibold">
                   Rotalarınıza devam edin
                 </p>
               </div>
 
               <div className="p-8">
-                {/* Demo Info */}
-                <div className="bg-gray-100 rounded-2xl p-4 mb-6">
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"></div>
-                    <div className="text-sm flex-1">
-                      <p className="font-bold text-slate-800 mb-3">
-                        Demo Hesapları:
-                      </p>
-                      <div className="space-y-2">
-                        <div className="bg-white px-4 py-2 rounded-xl border border-blue-200">
-                          <div className="font-mono text-xs text-slate-600">
-                            test@edirne.com
-                          </div>
-                          <div className="font-mono text-xs text-indigo-600 font-semibold">
-                            123456
-                          </div>
-                        </div>
-                        <div className="bg-white px-4 py-2 rounded-xl border border-blue-200">
-                          <div className="font-mono text-xs text-slate-600">
-                            admin@edirne.com
-                          </div>
-                          <div className="font-mono text-xs text-indigo-600 font-semibold">
-                            123
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Error Message */}
                 {error && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-3">
@@ -359,7 +331,7 @@ export default function EnhancedLoginPage() {
                         onFocus={() => setFocusedField("email")}
                         onBlur={() => setFocusedField("")}
                         className="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-gray-600 focus:bg-white focus:outline-none transition-all duration-300 placeholder-slate-400 text-slate-900"
-                        placeholder="ornek@email.com"
+                        placeholder="e-posta adresinizi giriniz"
                       />
                     </div>
                   </div>
@@ -385,7 +357,7 @@ export default function EnhancedLoginPage() {
                         onFocus={() => setFocusedField("password")}
                         onBlur={() => setFocusedField("")}
                         className="w-full pl-12 pr-12 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-gray-600 focus:bg-white focus:outline-none transition-all duration-300 placeholder-slate-400 text-slate-900"
-                        placeholder="••••••••"
+                        placeholder="sifrenizi giriniz"
                       />
                       <button
                         type="button"
