@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -17,7 +17,10 @@ interface LeafletMapProps {
 }
 
 function LeafletMap({ selectedPlaces, routeCoordinates }: LeafletMapProps) {
+  const [isClient, setIsClient] = useState(false);
+
   useEffect(() => {
+    setIsClient(true);
     // Leaflet icon yollarını düzelt
     if (typeof window !== "undefined") {
       const L = require("leaflet");
@@ -31,6 +34,14 @@ function LeafletMap({ selectedPlaces, routeCoordinates }: LeafletMapProps) {
       });
     }
   }, []);
+
+  if (!isClient) {
+    return (
+      <div className="h-full flex items-center justify-center bg-gray-100">
+        <div className="text-gray-500">Harita yükleniyor...</div>
+      </div>
+    );
+  }
 
   return (
     <MapContainer

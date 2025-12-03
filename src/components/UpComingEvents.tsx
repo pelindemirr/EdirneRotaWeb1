@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { Clock, MapPin, Award, ChevronLeft, ChevronRight } from "lucide-react";
+import { upcomingEvents as importedEvents } from "@/data/events";
 
 const UpcomingEvents = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -71,164 +72,70 @@ const UpcomingEvents = () => {
     },
   };
 
-  const rawEvents = [
-    {
-      id: 1,
-      category: "kultur",
-      eventDate: "2025-11-25", // 25 Kasım 2025
-      date: { day: "25", month: "KAS" },
-      icon: "🌟",
-      title: "Edirne'nin Kurtuluşu Töreni",
-      subtitle: "Resmi Tören",
-      description:
-        "Edirne'nin düşman işgalinden kurtuluşunun yıl dönümü. Belediye tarafından düzenlenen resmi tören, anma etkinlikleri ve konserler.",
-      dateRange: "25 Kasım 2025",
-      location: "Selimiye Camii ve Atatürk Anıtı",
-      image: "/assets/images/upcoming/kurtulus.png",
-    },
-    {
-      id: 2,
-      category: "kultur",
-      eventDate: "2026-01-26", // 26 Ocak 2026
-      date: { day: "26", month: "OCA" },
-      icon: "🎃",
-      title: "Bocuk Gecesi",
-      subtitle: "Geleneksel Kutlama",
-      description:
-        "Trakya'nın en eski Balkan geleneklerinden biri olan Bocuk Gecesi, kışın en soğuk anını simgeler. 'Bocuk' adlı kötücül varlıktan korunmak için evlerde mutlaka kabak tatlısı pişirilir. Gecenin en eğlenceli anı ise beyaz çarşaflar giyip yüzlerini boyayan gençlerin, kapıları çalarak köylüleri tatlı bir korkuyla korkutmasıdır. Bin yıllık bu gelenek, Keşan Çamlıca'da bir kış festivali coşkusuyla yaşatılır.",
-      dateRange: "25-26 Ocak 2026",
-      location: "Keşan, Çamlıca Köyü",
-      image: "/assets/images/upcoming/bocuk.png", // Yerel: Bocuk Gecesi
-    },
-    {
-      id: 3,
-      category: "kultur",
-      eventDate: "2026 05-10", // 10 Mayıs 2025
-      date: { day: "5", month: "MAY" },
-      icon: "🎪",
-      title: "Kakava Şenliği",
-      subtitle: "Roman Kültürü",
-      description:
-        "Roman halkının geleneksel bahar bayramı. Renkli kostümler, müzik, dans gösterileri ve kültürel etkinlikler. Sarayiçi'nde coşkulu kutlamalar.",
-      dateRange: "10-11 Mayıs 2026",
-      location: "Sarayiçi Mevkii",
-      image: "/assets/images/upcoming/kakava.jpg", // Yerel: Kakava Şenliği
-    },
-    {
-      id: 4,
-      category: "spor",
-      eventDate: "2026-06-28", // 28 Haziran 2025
-      date: { day: "28", month: "HAZ" },
-      icon: "🤼",
-      title: "Kırkpınar Yağlı Güreşleri",
-      subtitle: "660. Yıl Özel",
-      description:
-        "Dünyanın en eski spor organizasyonu. 3 gün sürecek güreş müsabakaları, kültür etkinlikleri ve özel gösteriler.",
-      dateRange: "28-30 Haziran 2026",
-      location: "Sarayiçi / Kırkpınar Meydanı",
-      image: "/assets/images/upcoming/kirkpinar.jpg", // Yerel: Kırkpınar Yağlı Güreşleri
-    },
-    {
-      id: 5,
-      category: "spor",
-      eventDate: "2025-11-16", // 16 Kasım 2025
-      date: { day: "16", month: "KAS" },
-      icon: "⚽",
-      title: "Edirnespor vs 1926 Polatlı Belediye Spor",
-      subtitle: "Futbol Maçı",
-      description:
-        "Edirnespor'un 3. Lig normal sezonunda 1926 Polatlı Belediye Spor ile karşılaşacağı önemli iç saha maçı. Tüm Edirne halkı davetlidir.",
-      dateRange: "16 Kasım 2025, 15:00",
-      location: "İç Saha (Edirne)",
-      image: "/assets/images/upcoming/mac.png",
-    },
-    {
-      id: 6,
-      category: "sanat",
-      eventDate: "2025-11-10", // 10 Kasım 2025
-      date: { day: "10", month: "KAS" },
-      icon: "🎭",
-      title: "ATA'YA SAYGI Sergisi",
-      subtitle: "Sergi",
-      description:
-        "Edirneli sanatkar Radife OT, geleneksel Sim Sırma Sanatı'nı (Divai İşi tekniğiyle) kullanarak, geçmişimizin izlerini ve Ulu Önder Mustafa Kemal Atatürk'e duyulan sonsuz minnettarlığı bir araya getiriyor. Sanat, emek ve vefanın buluştuğu bu özel sergi, derin bir saygı duruşudur.",
-      dateRange: "10-14 Kasım 2025",
-      location: "Devecihan Kültür Merkezi Hayri Çizel Sergi Salonu",
-      image: "/assets/images/upcoming/sergi.png", // Yerel: Ata'ya Saygı Sergisi
-    },
-    {
-      id: 8,
-      category: "sanat",
-      eventDate: "2025-11-18", // 18 Kasım 2025
-      date: { day: "18", month: "KAS" },
-      icon: "📸",
-      title: "Edirne Çarşılarına Fotoğraflarla Sosyolojik Bakış",
-      subtitle: "Fotoğraf Sergisi",
-      description:
-        "Edirne Belediyesi'nin düzenlediği özel fotoğraf sergisi. Edirne'nin tarihi çarşılarının sosyolojik açıdan incelendiği, fotoğraflarla belgelendiği bu sergi, şehrin kültürel dokusunu yansıtıyor.",
-      dateRange: "18 Kasım 2025",
-      location: "Atatürk Kültür Merkezi",
-      image: "/assets/images/upcoming/sergibelediye.png", // Görsel daha sonra eklenecek
-    },
-    {
-      id: 9,
-      category: "sanat",
-      eventDate: "2025-11-13", // 13 Kasım 2025 (Çarşamba)
-      date: { day: "13", month: "KAS" },
-      icon: "🎨",
-      title: "Obje Boyama Atölyesi",
-      subtitle: "Atölye - Hafta İçi",
-      description:
-        "Her gün 16:00-18:00 arası düzenlenen yaratıcı obje boyama atölyesi. Öğrencilere özel 50 TL indirim fırsatıyla! Sanatsal yeteneğinizi keşfedin ve eğlenceli vakit geçirin.",
-      dateRange: "Her Gün 16:00-18:00 (Hafta İçi)",
-      location: "Edirne Oda Sahnesi",
-      image: "/assets/images/upcoming/objeatolyesii.jpeg", // Görsel daha sonra eklenecek
-      note: "🎓 Öğrencilere 50 TL İndirim",
-    },
-    {
-      id: 10,
-      category: "sanat",
-      eventDate: "2025-11-16", // 16 Kasım 2025 (Cumartesi)
-      date: { day: "16", month: "KAS" },
-      icon: "🎨",
-      title: "Obje Boyama Atölyesi",
-      subtitle: "Atölye - Hafta Sonu",
-      description:
-        "Cumartesi ve Pazar günleri 14:00-18:00 arası düzenlenen yaratıcı obje boyama atölyesi. Hafta sonu ailenizle veya arkadaşlarınızla keyifli saatler geçirin. Öğrencilere özel 50 TL indirim!",
-      dateRange: "Cumartesi & Pazar 14:00-18:00",
-      location: "Edirne Oda Sahnesi",
-      image: "/assets/images/upcoming/objeatolyesii.jpeg", // Görsel daha sonra eklenecek
-      note: "🎓 Öğrencilere 50 TL İndirim",
-    },
-    {
-      id: 11,
-      category: "sanat",
-      eventDate: "2025-11-29", // 29 Kasım 2025
-      date: { day: "29", month: "KAS" },
-      icon: "🎭",
-      title: "İçimizdeki Şeytan",
-      subtitle: "Tiyatro Oyunu",
-      description:
-        "Unutulmaz bir tiyatro deneyimi için hazır olun! İçimizdeki Şeytan, insan doğasının karanlık yönlerini derinlemesine işleyen, sürükleyici bir performans sunuyor. Profesyonel oyuncu kadrosu ve etkileyici sahneleme ile unutulmaz bir akşam geçirin.",
-      dateRange: "29 Kasım 2025, 19:30",
-      location: "Atatürk Kültür Merkezi",
-      image: "/assets/images/upcoming/icimizdekiseytan.jpeg", // Görsel daha sonra eklenecek
-    },
-    {
-      id: 7,
-      category: "gastronomi",
-      eventDate: "2025-09-10", // 10 Eylül 2025
-      date: { day: "10", month: "EYL" },
-      icon: "🍽️",
-      title: "Edirne Gastronomi Festivali",
-      subtitle: "Gastronomi",
-      description:
-        "Edirne'nin meşhur tava ciğeri ustalarının yarıştığı lezzet festivali. Tadım standları, yarışmalar ve canlı müzik.",
-      dateRange: "10-11 Eylül 2025",
-      location: "Saraçlar Caddesi",
-      image: "/assets/images/upcoming/gastronomi.png", // Yerel: Edirne Gastronomi Festivali
-    },
-  ];
+  // events.ts'den gelen verileri rawEvents formatına dönüştür
+  const rawEvents = importedEvents.map((event) => {
+    // Tarih parse
+    const [day, monthName, year] = event.date.split(" ");
+    const monthMap: { [key: string]: string } = {
+      Ocak: "OCA",
+      Şubat: "ŞUB",
+      Mart: "MAR",
+      Nisan: "NIS",
+      Mayıs: "MAY",
+      Haziran: "HAZ",
+      Temmuz: "TEM",
+      Ağustos: "AGU",
+      Eylül: "EYL",
+      Ekim: "EKI",
+      Kasım: "KAS",
+      Aralık: "ARA",
+    };
+    const monthMapISO: { [key: string]: string } = {
+      Ocak: "01",
+      Şubat: "02",
+      Mart: "03",
+      Nisan: "04",
+      Mayıs: "05",
+      Haziran: "06",
+      Temmuz: "07",
+      Ağustos: "08",
+      Eylül: "09",
+      Ekim: "10",
+      Kasım: "11",
+      Aralık: "12",
+    };
+
+    // Icon belirleme
+    const iconMap: { [key: string]: string } = {
+      kultur: "🌟",
+      spor: "⚽",
+      gastronomi: "🍽️",
+      sanat: "🎭",
+    };
+
+    return {
+      id: event.id,
+      category: event.category,
+      eventDate: `${year}-${monthMapISO[monthName]}-${day.padStart(2, "0")}`,
+      date: { day: day, month: monthMap[monthName] || "---" },
+      icon: iconMap[event.category] || "📅",
+      title: event.title,
+      subtitle:
+        event.category === "kultur"
+          ? "Kültürel Etkinlik"
+          : event.category === "spor"
+          ? "Spor Etkinliği"
+          : event.category === "gastronomi"
+          ? "Gastronomi"
+          : event.category === "sanat"
+          ? "Sanat Etkinliği"
+          : "Etkinlik",
+      description: event.description,
+      dateRange: `${event.date}, ${event.time}`,
+      location: event.location,
+      image: event.image,
+    };
+  });
 
   // Geri sayım hesaplama fonksiyonu
   const calculateCountdown = (eventDate: string) => {
@@ -450,21 +357,6 @@ const UpcomingEvents = () => {
                           />
                           {event.location}
                         </div>
-                        {event.note && (
-                          <div
-                            className={`mt-2 p-2 rounded-lg ${
-                              event.iconBg
-                            } border-2 ${event.seasonBg
-                              .replace("bg-", "border-")
-                              .replace("-600", "-200")}`}
-                          >
-                            <p
-                              className={`text-xs font-semibold ${event.iconColor} text-center`}
-                            >
-                              {event.note}
-                            </p>
-                          </div>
-                        )}
                       </div>
 
                       <div className="mt-auto">
@@ -501,11 +393,13 @@ const UpcomingEvents = () => {
 
         {/* Tüm Etkinlikleri Gör */}
         <div className="text-center mt-12">
-          <button className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl flex items-center mx-auto gap-2">
-            <Award className="w-4 h-4 md:w-5 md:h-5" />
-            Tüm Etkinlik Takvimi
-            <span className="ml-1">→</span>
-          </button>
+          <a href="/etkinlikler">
+            <button className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl flex items-center mx-auto gap-2">
+              <Award className="w-4 h-4 md:w-5 md:h-5" />
+              Tüm Etkinlik Takvimi
+              <span className="ml-1">→</span>
+            </button>
+          </a>
         </div>
       </div>
     </section>

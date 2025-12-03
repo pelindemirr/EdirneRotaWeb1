@@ -1,6 +1,55 @@
 "use client";
+import React, { useState, useEffect } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { useState, useEffect } from "react";
+import Header from "@/components/layout/Header";
+import {
+  MapPin,
+  Plus,
+  X,
+  Navigation,
+  Clock,
+  Trash2,
+  Search,
+  Star,
+  Heart,
+  GripVertical,
+  Route,
+} from "lucide-react";
+
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import dynamic from "next/dynamic";
+import { places, Place } from "@/mock/places";
+import { addUserRoute } from "@/utils/userRoutes";
+import { useAuth } from "@/contexts/AuthContext";
+
+// Leaflet bileşenini ayrı component olarak yükle
+const LeafletMap = dynamic(() => import("../../components/LeafletMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full flex items-center justify-center bg-gray-100">
+      <div className="text-gray-500 animate-pulse">Harita yükleniyor...</div>
+    </div>
+  ),
+});
+
+import { SortableRouteItem } from "./SortableRouteItem";
+
 function ConfirmModal({
   open,
   onClose,
@@ -41,54 +90,10 @@ function ConfirmModal({
     </div>
   );
 }
-import Header from "@/components/layout/Header";
-import {
-  MapPin,
-  Plus,
-  X,
-  Navigation,
-  Clock,
-  Trash2,
-  Search,
-  Star,
-  Heart,
-  GripVertical,
-  Route,
-} from "lucide-react";
 
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import dynamic from "next/dynamic";
-import { places, Place } from "@/mock/places";
+export default function EdirneRoutePage() {
+  const { isLoggedIn } = useAuth();
 
-// Leaflet bileşenini ayrı component olarak yükle
-const LeafletMap = dynamic(() => import("../../components/LeafletMap"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-full flex items-center justify-center bg-gray-100">
-      <div className="text-gray-500 animate-pulse">Harita yükleniyor...</div>
-    </div>
-  ),
-});
-
-import { SortableRouteItem } from "./SortableRouteItem";
-
-export default function RotaPlanlaPage() {
   const [showClearModal, setShowClearModal] = useState(false);
   const [shareUrl, setShareUrl] = useState<string>("");
   const [selectedPlaces, setSelectedPlaces] = useState<Place[]>([]);
@@ -108,46 +113,11 @@ export default function RotaPlanlaPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [routeName, setRouteName] = useState("");
 
-  {
-    /* Toplam Rota Özeti - Modern ve profesyonel kutu */
-  }
-  {
-    routeInfo &&
-      (() => {
-        const distanceKm = (routeInfo.distance / 1000).toFixed(2);
-        const durationMin = Math.round(routeInfo.duration / 60);
-        const durationHrs = Math.floor(durationMin / 60);
-        const durationRemainingMin = durationMin % 60;
-        return (
-          <div className="mt-3 flex flex-col gap-1 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200 shadow-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <Route className="w-4 h-4 text-blue-600" />
-              <span className="font-semibold text-blue-700 text-sm">
-                Toplam Rota Özeti
-              </span>
-            </div>
-            <div className="flex justify-between text-xs text-gray-700">
-              <span>Mesafe:</span>
-              <span className="font-bold text-blue-700">{distanceKm} km</span>
-            </div>
-            <div className="flex justify-between text-xs text-gray-700">
-              <span>Süre:</span>
-              <span className="font-bold text-blue-700">
-                {durationHrs > 0
-                  ? `${durationHrs} sa ${durationRemainingMin} dk`
-                  : `${durationMin} dk`}
-              </span>
-            </div>
-            <div className="text-[10px] text-gray-500 text-right italic mt-1">
-              Trafik, duraklama ve yol tipi süreyi etkileyebilir.
-            </div>
-          </div>
-        );
-      })();
-  }
-  const fetchRealRoute = async (places: Place[]) => {
-    if (places.length < 2) {
+  const fetchRealRoute = async (placesParam: Place[]) => {
+    if (placesParam.length < 2) {
       setRouteCoordinates([]);
       setRouteInfo(null);
       return;
@@ -155,7 +125,7 @@ export default function RotaPlanlaPage() {
 
     setIsLoadingRoute(true);
     try {
-      const coords = places.map((p) => `${p.lng},${p.lat}`).join(";");
+      const coords = placesParam.map((p) => `${p.lng},${p.lat}`).join(";");
       const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
 
       const response = await fetch(url);
@@ -170,10 +140,14 @@ export default function RotaPlanlaPage() {
           distance: data.routes[0].distance,
           duration: data.routes[0].duration,
         });
+      } else {
+        // fallback: düz noktaları kullan
+        setRouteCoordinates(placesParam.map((p) => [p.lat, p.lng]));
+        setRouteInfo(null);
       }
     } catch (error) {
       console.error("Rota çizimi başarısız:", error);
-      setRouteCoordinates(places.map((p) => [p.lat, p.lng]));
+      setRouteCoordinates(placesParam.map((p) => [p.lat, p.lng]));
       setRouteInfo(null);
     } finally {
       setIsLoadingRoute(false);
@@ -187,6 +161,7 @@ export default function RotaPlanlaPage() {
       setRouteCoordinates([]);
       setRouteInfo(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPlaces]);
 
   const shareOnWhatsApp = () => {
@@ -200,19 +175,15 @@ export default function RotaPlanlaPage() {
     setSaveSuccess(false);
     setCopySuccess(false);
     try {
-      const routeData = {
-        name: "Edirne Rotam",
-        date: new Date().toISOString(),
-        places: selectedPlaces,
-      };
-      const res = await fetch("/api/routes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(routeData),
-      });
-      const { id } = await res.json();
-      const shareLink = `${window.location.origin}/r/${id}`;
-      setShareUrl(shareLink);
+      // Loginli kullanıcı ise localStorage'a kaydet
+      if (isLoggedIn) {
+        addUserRoute({
+          name: "Edirne Rotam",
+          places: selectedPlaces.map((p) => p.name),
+        });
+      }
+      // Eski API paylaşım logic'i (isteğe bağlı)
+      // ...
       setSaveSuccess(true);
     } catch (e) {
       alert("Bir hata oluştu, rota kaydedilemedi.");
@@ -552,6 +523,7 @@ export default function RotaPlanlaPage() {
               />
             )}
           </div>
+
           {/* Sağ - Seçilen Rota */}
           <div
             className="bg-white rounded-xl shadow-lg p-4 flex flex-col"
@@ -656,10 +628,10 @@ export default function RotaPlanlaPage() {
                 <div className="border-t border-gray-200 pt-3 space-y-2">
                   <button
                     onClick={() => setShowClearModal(true)}
-                    className="w-full bg-gray-500 hover:bg-gray-700 text-white-700 py-2 px-3 rounded-lg transition-all duration-200 hover:scale-105 font-medium flex items-center justify-center gap-2 text-sm"
+                    className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded-lg transition-all duration-200 hover:scale-105 font-medium flex items-center justify-center gap-2 text-sm shadow-md"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    Temizle
+                    Rotayı Temizle
                   </button>
                   <ConfirmModal
                     open={showClearModal}
@@ -674,7 +646,7 @@ export default function RotaPlanlaPage() {
                       Rotanızı kaydedin ve paylaşın
                     </div>
                     <button
-                      onClick={saveRoute}
+                      onClick={() => setShowNameModal(true)}
                       disabled={isSaving || selectedPlaces.length === 0}
                       className={`w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white py-2 px-3 rounded-lg transition-all duration-200 hover:scale-105 font-medium flex items-center justify-center gap-2 shadow-md text-sm ${
                         isSaving || selectedPlaces.length === 0
@@ -708,6 +680,58 @@ export default function RotaPlanlaPage() {
                       )}
                       {isSaving ? "Kaydediliyor..." : "Rotayı Kaydet ve Paylaş"}
                     </button>
+
+                    {/* Rota ismi modalı */}
+                    {showNameModal && (
+                      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30">
+                        <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xs flex flex-col items-center">
+                          <div className="text-lg font-bold text-gray-800 mb-2">
+                            Rota İsmi
+                          </div>
+                          <input
+                            type="text"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 text-sm text-gray-800"
+                            placeholder="Rota adını girin..."
+                            value={routeName}
+                            onChange={(e) => setRouteName(e.target.value)}
+                          />
+                          <div className="flex gap-2 w-full">
+                            <button
+                              onClick={() => setShowNameModal(false)}
+                              className="flex-1 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium"
+                            >
+                              Vazgeç
+                            </button>
+                            <button
+                              onClick={async () => {
+                                setIsSaving(true);
+                                setSaveSuccess(false);
+                                setCopySuccess(false);
+                                try {
+                                  if (isLoggedIn) {
+                                    addUserRoute({
+                                      name: routeName || "Edirne Rotam",
+                                      places: selectedPlaces.map((p) => p.name),
+                                    });
+                                  }
+                                  setSaveSuccess(true);
+                                  setShowNameModal(false);
+                                } catch (e) {
+                                  alert("Bir hata oluştu, rota kaydedilemedi.");
+                                } finally {
+                                  setIsSaving(false);
+                                }
+                              }}
+                              className="flex-1 py-2 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 text-white font-medium hover:from-red-600 hover:to-orange-600 shadow-md"
+                              disabled={isSaving || !routeName.trim()}
+                            >
+                              Kaydet
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {saveSuccess && shareUrl && (
                       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-in slide-in-from-bottom duration-300">

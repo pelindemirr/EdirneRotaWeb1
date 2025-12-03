@@ -76,6 +76,9 @@ export default function EnhancedRegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [focusedField, setFocusedField] = useState("");
   const [currentSpot, setCurrentSpot] = useState(0);
+  const [kvkkAccepted, setKvkkAccepted] = useState(false);
+  const [showKvkkModal, setShowKvkkModal] = useState(false);
+  const [emailConsent, setEmailConsent] = useState(false);
 
   // Auto-slide carousel
   useEffect(() => {
@@ -107,6 +110,12 @@ export default function EnhancedRegisterPage() {
 
     if (formData.password !== formData.confirmPassword) {
       setError("Şifreler uyuşmuyor!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!kvkkAccepted) {
+      setError("KVKK metnini kabul etmelisiniz!");
       setIsLoading(false);
       return;
     }
@@ -254,7 +263,7 @@ export default function EnhancedRegisterPage() {
           <div className="w-full max-w-md mx-auto lg:mx-0">
             {/* Mobile Title */}
             <div className="lg:hidden text-center mb-8">
-              <h1 className="text-4xl font-black bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+              <h1 className="text-4xl font-black bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
                 Hesap Oluştur
               </h1>
               <p className="text-slate-600 font-semibold">
@@ -265,7 +274,7 @@ export default function EnhancedRegisterPage() {
             {/* Register Card */}
             <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-slate-200 shadow-2xl overflow-hidden">
               {/* Card Header */}
-              <div className="bg-gradient-to-r from-red-600 to-red-300 p-6 text-center">
+              <div className="bg-gradient-to-r from-red-600 to-red-300 p-4 text-center">
                 <h3 className="text-2xl font-bold text-white mb-1">
                   Aramıza Katılın
                 </h3>
@@ -274,27 +283,27 @@ export default function EnhancedRegisterPage() {
                 </p>
               </div>
 
-              <div className="p-8">
+              <div className="p-6">
                 {/* Error Message */}
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-3">
-                    <div className="w-5 h-5 bg-gray-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg mb-4 flex items-center gap-2">
+                    <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-xs">✕</span>
                     </div>
-                    <span className="text-sm font-medium">{error}</span>
+                    <span className="text-xs font-medium">{error}</span>
                   </div>
                 )}
 
                 {/* Form Fields */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {/* Name Field */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       Adınız Soyadınız
                     </label>
                     <div className="relative">
                       <User
-                        className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${
+                        className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
                           focusedField === "name"
                             ? "text-red-600"
                             : "text-slate-400"
@@ -307,7 +316,7 @@ export default function EnhancedRegisterPage() {
                         onChange={handleInputChange}
                         onFocus={() => setFocusedField("name")}
                         onBlur={() => setFocusedField("")}
-                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-gray-600 focus:bg-white focus:outline-none transition-all duration-300 placeholder-slate-400 text-slate-900"
+                        className="w-full pl-10 pr-3 py-2 text-sm bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-red-600 focus:bg-white focus:outline-none transition-all duration-300 placeholder-slate-400 text-slate-900"
                         placeholder="Ad Soyad"
                       />
                     </div>
@@ -315,12 +324,12 @@ export default function EnhancedRegisterPage() {
 
                   {/* Email Field */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       E-posta Adresi
                     </label>
                     <div className="relative">
                       <Mail
-                        className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${
+                        className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
                           focusedField === "email"
                             ? "text-red-600"
                             : "text-slate-400"
@@ -333,20 +342,20 @@ export default function EnhancedRegisterPage() {
                         onChange={handleInputChange}
                         onFocus={() => setFocusedField("email")}
                         onBlur={() => setFocusedField("")}
-                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-gray-600 focus:bg-white focus:outline-none transition-all duration-300 placeholder-slate-400 text-slate-900"
-                        placeholder="ornek@email.com"
+                        className="w-full pl-10 pr-3 py-2 text-sm bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-red-600 focus:bg-white focus:outline-none transition-all duration-300 placeholder-slate-400 text-slate-900"
+                        placeholder="E-posta giriniz"
                       />
                     </div>
                   </div>
 
                   {/* Password Field */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       Şifre
                     </label>
                     <div className="relative">
                       <Lock
-                        className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${
+                        className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
                           focusedField === "password"
                             ? "text-red-600"
                             : "text-slate-400"
@@ -359,18 +368,18 @@ export default function EnhancedRegisterPage() {
                         onChange={handleInputChange}
                         onFocus={() => setFocusedField("password")}
                         onBlur={() => setFocusedField("")}
-                        className="w-full pl-12 pr-12 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-gray-600 focus:bg-white focus:outline-none transition-all duration-300 placeholder-slate-400 text-slate-900"
-                        placeholder="En az 6 karakter"
+                        className="w-full pl-10 pr-10 py-2 text-sm bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-red-600 focus:bg-white focus:outline-none transition-all duration-300 placeholder-slate-400 text-slate-900"
+                        placeholder="Şifre giriniz"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
                       >
                         {showPassword ? (
-                          <EyeOff className="h-5 w-5" />
+                          <EyeOff className="h-4 w-4" />
                         ) : (
-                          <Eye className="h-5 w-5" />
+                          <Eye className="h-4 w-4" />
                         )}
                       </button>
                     </div>
@@ -378,12 +387,12 @@ export default function EnhancedRegisterPage() {
 
                   {/* Confirm Password Field */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       Şifre Tekrarı
                     </label>
                     <div className="relative">
                       <Lock
-                        className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${
+                        className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
                           focusedField === "confirmPassword"
                             ? "text-red-600"
                             : "text-slate-400"
@@ -396,7 +405,7 @@ export default function EnhancedRegisterPage() {
                         onChange={handleInputChange}
                         onFocus={() => setFocusedField("confirmPassword")}
                         onBlur={() => setFocusedField("")}
-                        className="w-full pl-12 pr-12 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-gray-600 focus:bg-white focus:outline-none transition-all duration-300 placeholder-slate-400 text-slate-900"
+                        className="w-full pl-10 pr-10 py-2 text-sm bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-red-600 focus:bg-white focus:outline-none transition-all duration-300 placeholder-slate-400 text-slate-900"
                         placeholder="Şifrenizi tekrar girin"
                       />
                       <button
@@ -404,27 +413,66 @@ export default function EnhancedRegisterPage() {
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
                       >
                         {showConfirmPassword ? (
-                          <EyeOff className="h-5 w-5" />
+                          <EyeOff className="h-4 w-4" />
                         ) : (
-                          <Eye className="h-5 w-5" />
+                          <Eye className="h-4 w-4" />
                         )}
                       </button>
                     </div>
+                  </div>
+
+                  {/* KVKK Checkbox */}
+                  <div className="flex items-start gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <input
+                      type="checkbox"
+                      id="kvkk"
+                      checked={kvkkAccepted}
+                      onChange={(e) => setKvkkAccepted(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 accent-red-600 border-2 border-slate-300 rounded focus:ring-2 focus:ring-red-500 cursor-pointer"
+                    />
+                    <label htmlFor="kvkk" className="text-xs text-slate-700">
+                      <button
+                        type="button"
+                        onClick={() => setShowKvkkModal(true)}
+                        className="text-red-600 hover:text-red-700 font-semibold underline"
+                      >
+                        KVKK
+                      </button>{" "}
+                      metnini okudum ve kabul ediyorum.
+                    </label>
+                  </div>
+
+                  {/* E-posta Bildirimi Onayı */}
+                  <div className="flex items-start gap-2 p-3 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg border border-red-100">
+                    <input
+                      type="checkbox"
+                      id="emailConsent"
+                      checked={emailConsent}
+                      onChange={(e) => setEmailConsent(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 accent-red-600 border-2 border-red-300 rounded focus:ring-2 focus:ring-red-500 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="emailConsent"
+                      className="text-xs text-slate-700 cursor-pointer"
+                    >
+                      Yeni etkinlikler ve kampanyalar hakkında bilgilendirme
+                      almak istiyorum.
+                    </label>
                   </div>
 
                   {/* Submit Button */}
                   <button
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-white-400 to-red-600 hover:from-red-500 hover:to-white-700 disabled:from-slate-400 disabled:to-slate-500 text-white py-3.5 rounded-xl font-bold text-base transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 shadow-lg hover:shadow-xl disabled:shadow-none mt-2"
+                    className="w-full bg-gradient-to-r from-red-600 to-red-400 hover:from-red-700 hover:to-red-500 disabled:from-slate-400 disabled:to-slate-500 text-white py-2.5 rounded-lg font-bold text-sm transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 shadow-lg hover:shadow-xl disabled:shadow-none mt-2"
                   >
                     {isLoading ? (
                       <div className="flex items-center justify-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Hesap Oluşturuluyor...
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Oluşturuluyor...
                       </div>
                     ) : (
                       "Hesap Oluştur"
@@ -433,12 +481,12 @@ export default function EnhancedRegisterPage() {
                 </div>
 
                 {/* Login Link */}
-                <div className="mt-6 text-center">
-                  <p className="text-slate-600 text-sm mb-2">
+                <div className="mt-4 text-center">
+                  <p className="text-slate-600 text-xs mb-1">
                     Zaten hesabınız var mı?
                   </p>
                   <button
-                    className="text-red-500 hover:text-red-700 scale-105 font-bold text-sm transition-colors duration-300"
+                    className="text-red-600 hover:text-red-700 font-bold text-xs transition-colors duration-300"
                     onClick={() => router.push("/auth/login")}
                   >
                     Giriş Yap
@@ -448,7 +496,7 @@ export default function EnhancedRegisterPage() {
             </div>
 
             {/* Footer Links */}
-            <div className="mt-4 text-center text-slate-500 text-xs">
+            <div className="mt-3 text-center text-slate-500 text-[10px]">
               <button className="hover:text-slate-700 transition-colors">
                 Gizlilik Politikası
               </button>
@@ -460,6 +508,121 @@ export default function EnhancedRegisterPage() {
           </div>
         </div>
       </div>
+
+      {/* KVKK Modal */}
+      {showKvkkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-red-600 to-red-400 p-6 text-white">
+              <h3 className="text-2xl font-bold">KVKK Aydınlatma Metni</h3>
+              <p className="text-sm text-red-50 mt-1">
+                Kişisel Verilerin Korunması Kanunu
+              </p>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)]">
+              <div className="space-y-4 text-slate-700">
+                <p className="text-sm leading-relaxed">
+                  <strong className="text-slate-900">Veri Sorumlusu:</strong>{" "}
+                  Edirne Rota Web platformu olarak, 6698 sayılı Kişisel
+                  Verilerin Korunması Kanunu ("KVKK") kapsamında veri sorumlusu
+                  sıfatıyla hareket etmekteyiz.
+                </p>
+
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-2">
+                    1. Toplanan Kişisel Veriler
+                  </h4>
+                  <p className="text-sm leading-relaxed">
+                    Platformumuza üye olurken ad-soyad, e-posta adresi ve şifre
+                    bilgileriniz toplanmaktadır. Ayrıca platform kullanımınız
+                    sırasında rota tercihleri, favori mekanlar ve konum
+                    bilgileri işlenebilir.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-2">
+                    2. Verilerin İşlenme Amacı
+                  </h4>
+                  <p className="text-sm leading-relaxed">
+                    Kişisel verileriniz; hesap oluşturma, kimlik doğrulama,
+                    platformun sunduğu hizmetlerden yararlanmanızı sağlama,
+                    kişiselleştirilmiş rota önerileri sunma, iletişim kurma ve
+                    yasal yükümlülüklerin yerine getirilmesi amaçlarıyla
+                    işlenmektedir.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-2">
+                    3. Verilerin Aktarılması
+                  </h4>
+                  <p className="text-sm leading-relaxed">
+                    Kişisel verileriniz, yukarıda belirtilen amaçların
+                    gerçekleştirilmesi için gerekli olduğu ölçüde ve KVKK'ya
+                    uygun şekilde üçüncü kişilerle paylaşılabilir. Verileriniz
+                    yurt dışına aktarılmaz.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-2">
+                    4. Haklarınız
+                  </h4>
+                  <p className="text-sm leading-relaxed">
+                    KVKK'nın 11. maddesi uyarınca, kişisel verilerinizin işlenip
+                    işlenmediğini öğrenme, işlenmişse bilgi talep etme, işlenme
+                    amacını ve amaca uygun kullanılıp kullanılmadığını öğrenme,
+                    yurt içinde/dışında aktarıldığı üçüncü kişileri bilme,
+                    eksik/yanlış işlenmişse düzeltilmesini isteme, ilgili
+                    mevzuatta öngörülen şartlar çerçevesinde silinmesini/yok
+                    edilmesini isteme, yapılan işlemlerin aktarıldığı üçüncü
+                    kişilere bildirilmesini isteme, münhasıran otomatik
+                    sistemler ile analiz edilmesi nedeniyle aleyhinize bir sonuç
+                    doğmasına itiraz etme ve kanuna aykırı işlenmesi sebebiyle
+                    zarara uğramanız hâlinde zararın giderilmesini talep etme
+                    haklarına sahipsiniz.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-2">
+                    5. İletişim
+                  </h4>
+                  <p className="text-sm leading-relaxed">
+                    KVKK kapsamındaki taleplerinizi, kimlik teyidinizi sağlayan
+                    belgelerle birlikte platformumuz üzerinden veya
+                    info@edirnerota.com adresine iletebilirsiniz.
+                  </p>
+                </div>
+
+                <p className="text-xs text-slate-500 mt-6 italic">
+                  Son güncelleme: 13 Kasım 2025
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-slate-200 flex gap-3">
+              <button
+                onClick={() => {
+                  setKvkkAccepted(true);
+                  setShowKvkkModal(false);
+                }}
+                className="flex-1 bg-gradient-to-r from-red-600 to-red-400 hover:from-red-700 hover:to-red-500 text-white py-3 rounded-xl font-semibold transition-all duration-300"
+              >
+                Kabul Ediyorum
+              </button>
+              <button
+                onClick={() => setShowKvkkModal(false)}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-semibold transition-all duration-300"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

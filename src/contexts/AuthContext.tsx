@@ -55,17 +55,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const storedUser = localStorage.getItem("user");
     if (storedLogin === "true") {
       setIsLoggedInState(true);
+      // Cookie'ye de kaydet (middleware için)
+      document.cookie = `isLoggedIn=true; path=/; max-age=${86400 * 30}`;
       if (storedUser) {
         try {
           setUserState(JSON.parse(storedUser));
         } catch {}
       }
+    } else {
+      // Cookie'yi temizle
+      document.cookie = "isLoggedIn=; path=/; max-age=0";
     }
   }, []);
 
   const setIsLoggedIn = (logged: boolean) => {
     setIsLoggedInState(logged);
     localStorage.setItem("isLoggedIn", logged ? "true" : "false");
+    // Cookie'ye de kaydet (middleware için)
+    document.cookie = `isLoggedIn=${logged}; path=/; max-age=${
+      logged ? 86400 * 30 : 0
+    }`;
     if (!logged) localStorage.removeItem("user");
   };
 
@@ -91,6 +100,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     setIsLoggedIn(false);
+    // Cookie'yi temizle
+    document.cookie = "isLoggedIn=; path=/; max-age=0";
     router.push("/");
   };
 

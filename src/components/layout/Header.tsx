@@ -27,6 +27,12 @@ function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [eurToTry, setEurToTry] = useState<string>("...");
+  const [weather, setWeather] = useState<{
+    temp: number;
+    desc: string;
+    icon: string;
+    city: string;
+  } | null>(null);
   const { isLoggedIn, user, logout, isFirstLogin } = useAuth();
 
   // ECB API'sinden EUR/TRY kurunu çek
@@ -73,6 +79,26 @@ function Header() {
       }
     }
   }, [isLoggedIn]);
+
+  // Hava durumu verisini çek
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const response = await fetch("/api/weather");
+        const data = await response.json();
+        if (data.temp) {
+          setWeather(data);
+        } else {
+          setWeather(null);
+        }
+      } catch (error) {
+        setWeather(null);
+      }
+    };
+    fetchWeather();
+    const interval = setInterval(fetchWeather, 7200000); // 2 saatte bir güncelle
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCharacterSelect = (type: string) => {
     setSelectedCharacter(type);
@@ -259,42 +285,54 @@ function Header() {
                   <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-white rounded-full"></span>
                 )}
               </a>
-              <a
-                href="/iletisim"
-                className={`transition-all duration-300 font-semibold text-lg hover:scale-105 relative group px-2 py-1 rounded-lg ${
-                  isActive("/iletisim")
-                    ? "bg-red-600 text-white shadow-lg"
-                    : "text-gray-700 hover:text-red-600"
-                }`}
-              >
-                İletişim
-                {isActive("/iletisim") && (
-                  <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-white rounded-full"></span>
-                )}
-              </a>
             </nav>
 
             <div className="flex items-center space-x-6">
               <div className="hidden lg:flex items-center space-x-4">
-                <div className="flex items-center space-x-2 text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+                <div className="flex items-center space-x-2 text-gray-600 bg-gray-50 px-3 py-2 rounded-lg border border-red-200 h-13 min-w-[100px] items-center">
                   <span className="text-sm font-bold">€1 =</span>
-                  <span className="font-bold text-sm  text-gray-800">
+                  <span className="font-bold text-lg text-gray-600">
                     ₺{eurToTry}
                   </span>
                 </div>
-                <div className="flex items-center space-x-2 text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+                <div className="flex items-center space-x-2 text-gray-600 bg-gray-50 px-3 py-2 rounded-lg border border-red-200 h-13 items-center">
                   {/* Hava durumu iconu ve derece */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-yellow-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <circle cx="12" cy="12" r="5" fill="#FACC15" />
-                  </svg>
-                  <span className="font-semibold">22°C</span>
-                  <span className="text-xs text-gray-500">Edirne</span>
+                  {weather ? (
+                    <>
+                      <span className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-white border-2 border-gray-300 shadow-lg mr-2">
+                        <img
+                          src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
+                          alt={weather.desc}
+                          className="h-10 w-10"
+                          title={weather.desc}
+                        />
+                      </span>
+                      <span className="font-semibold text-lg">
+                        {weather.temp}°C
+                      </span>
+                      <span className="text-xs text-red-600 font-semibold">
+                        {weather.city}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-white border-2 border-yellow-300 shadow-lg mr-2">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-10 w-10 text-yellow-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <circle cx="12" cy="12" r="5" fill="#FACC15" />
+                        </svg>
+                      </span>
+                      <span className="font-semibold text-lg">--°C</span>
+                      <span className="text-xs text-gray-500 font-semibold">
+                        Edirne
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -321,14 +359,27 @@ function Header() {
                       <div className="px-3 py-3 w-full text-center">
                         <p className="font-bold text-red-600">Hoşgeldiniz</p>
                       </div>
-                      <button className="w-5/6 text-left px-4 py-2 hover:bg-red-100 flex items-center space-x-3  rounded-lg">
+                      <Link
+                        href="/dashboard/profile"
+                        className="w-5/6 text-left px-4 py-2 hover:bg-red-100 flex items-center space-x-3 rounded-lg"
+                      >
+                        <User className="w-4 h-4 text-gray-500" />
+                        <span>Profilim</span>
+                      </Link>
+                      <Link
+                        href="/dashboard/profile"
+                        className="w-5/6 text-left px-4 py-2 hover:bg-red-100 flex items-center space-x-3  rounded-lg"
+                      >
                         <Bookmark className="w-4 h-4 text-gray-500" />
                         <span>Favori Yerler</span>
-                      </button>
-                      <button className="w-5/6 text-left px-4 py-2 hover:bg-red-100 flex items-center space-x-3 rounded-lg">
+                      </Link>
+                      <Link
+                        href="/dashboard/profile"
+                        className="w-5/6 text-left px-4 py-2 hover:bg-red-100 flex items-center space-x-3 rounded-lg"
+                      >
                         <Camera className="w-4 h-4 text-gray-500" />
                         <span>Fotoğraf Galerim</span>
-                      </button>
+                      </Link>
                       <div className=" mt-2 pt-2 w-5/6">
                         <button
                           onClick={logout}
@@ -383,12 +434,7 @@ function Header() {
                 >
                   Etkinlikler
                 </a>
-                <a
-                  href="/iletisim"
-                  className="text-gray-700 hover:text-red-600 transition-colors font-semibold text-lg py-2 px-4 rounded-lg hover:bg-red-50"
-                >
-                  İletişim
-                </a>
+
                 <div className="flex flex-col space-y-3 pt-4">
                   <Link
                     href="/auth/login"
