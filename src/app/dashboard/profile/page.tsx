@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   Award,
   MapPin,
@@ -18,6 +17,8 @@ import {
   CheckCircle2,
   Heart,
   Trash2,
+  X,
+  Edit2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/layout/Header";
@@ -27,118 +28,20 @@ import {
   deleteUserRoute,
   UserRoute,
 } from "@/utils/userRoutes";
-import { getEarnedBadges } from "@/utils/badgeLogic";
+import { places, Place } from "@/mock/places";
+import { allBadges } from "@/mock/badges";
 
-// Gerçek rozet sistemi
-const badges = [
-  {
-    id: 1,
-    name: "İlk Adım",
-    icon: "🎯",
-    desc: "İlk rotanı tamamladın!",
-    requirement: 1,
-    unlocked: true,
-    color: "from-blue-500 to-cyan-500",
-  },
-  {
-    id: 2,
-    name: "Tarih Meraklısı",
-    icon: "🏛️",
-    desc: "5 tarihi mekanı ziyaret ettin",
-    requirement: 5,
-    unlocked: true,
-    color: "from-purple-500 to-pink-500",
-  },
-  {
-    id: 3,
-    name: "Doğa Sever",
-    icon: "🌳",
-    desc: "3 doğal alanı keşfettin",
-    requirement: 3,
-    unlocked: false,
-    color: "from-green-500 to-emerald-500",
-  },
-  {
-    id: 4,
-    name: "Gurme",
-    icon: "🍽️",
-    desc: "10 yerel lezzeti tattın",
-    requirement: 10,
-    unlocked: true,
-    color: "from-orange-500 to-red-500",
-  },
-  {
-    id: 5,
-    name: "Sosyal Gezgin",
-    icon: "👥",
-    desc: "Rotalarını 5 kişiyle paylaştın",
-    requirement: 5,
-    unlocked: false,
-    color: "from-teal-500 to-blue-500",
-  },
-  {
-    id: 6,
-    name: "Festival Aşığı",
-    icon: "🎭",
-    desc: "3 etkinliğe katıldın",
-    requirement: 3,
-    unlocked: true,
-    color: "from-pink-500 to-rose-500",
-  },
-  {
-    id: 7,
-    name: "Maraton Koşucusu",
-    icon: "🏃",
-    desc: "50km yol kat ettin",
-    requirement: 50,
-    unlocked: false,
-    color: "from-indigo-500 to-purple-500",
-  },
-  {
-    id: 8,
-    name: "Edirne Uzmanı",
-    icon: "🎓",
-    desc: "Tüm kategorileri keşfettin",
-    requirement: 100,
-    unlocked: false,
-    color: "from-yellow-500 to-amber-500",
-  },
-  {
-    id: 9,
-    name: "Fotoğraf Sanatçısı",
-    icon: "📸",
-    desc: "20 fotoğraf paylaştın",
-    requirement: 20,
-    unlocked: false,
-    color: "from-violet-500 to-fuchsia-500",
-  },
-  {
-    id: 10,
-    name: "Kırkpınar Görmüş",
-    icon: "🤼",
-    desc: "Kırkpınar Festivali'ne katıldın",
-    requirement: 1,
-    unlocked: true,
-    color: "from-red-600 to-orange-600",
-  },
-  {
-    id: 11,
-    name: "Selimiye'nin Ustası",
-    icon: "🕌",
-    desc: "Selimiye Camii'ni 3 kez ziyaret ettin",
-    requirement: 3,
-    unlocked: false,
-    color: "from-sky-500 to-blue-600",
-  },
-  {
-    id: 12,
-    name: "Edirne Elçisi",
-    icon: "👑",
-    desc: "50 yer ziyaret ettin - Tebrikler!",
-    requirement: 50,
-    unlocked: false,
-    color: "from-amber-500 to-yellow-600",
-  },
+const badges = allBadges;
+
+import React, { useState, useEffect } from "react";
+
+// Avatar seçenekleri (PNG)
+const avatars = [
+  { id: 1, src: "/assets/images/profile/man1.png", name: "Erkek 1" },
+  { id: 2, src: "/assets/images/profile/woman2.png", name: "Kadın 2" },
+
+  { id: 3, src: "/assets/images/profile/man2.png", name: "Erkek 2" },
+  { id: 4, src: "/assets/images/profile/woman1.png", name: "Kadın 1" },
 ];
 
 // Kullanıcıya ait rotalar (localStorage'dan)
@@ -153,12 +56,10 @@ function useUserRoutes() {
   return [routes, setRoutes] as const;
 }
 
-// Favori yerler
-import { places, Place } from "@/mock/places";
-// Favori yerler hook'ları component içinde kullanılmalı
-
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState(avatars[0]);
   const { user: authUser } = useAuth();
   const [userRoutes, setUserRoutes] = useUserRoutes();
 
@@ -178,6 +79,15 @@ export default function ProfilePage() {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
+  // Avatar localStorage'dan yükle
+  useEffect(() => {
+    const savedAvatarId = localStorage.getItem("edirne_avatar");
+    if (savedAvatarId) {
+      const avatar = avatars.find((a) => a.id === parseInt(savedAvatarId));
+      if (avatar) setSelectedAvatar(avatar);
+    }
+  }, []);
+
   // Kullanıcı bilgileri - gerçek auth'dan geliyor
   const user = {
     name: authUser?.name || "Kullanıcı",
@@ -186,7 +96,23 @@ export default function ProfilePage() {
     xp: userRoutes.filter((r) => r.completed).length * 100,
     nextLevelXp: 500,
   };
-  const earnedBadges = getEarnedBadges(userRoutes);
+  // Tamamlanan rota sayısı
+  const completedRoutesCount = userRoutes.filter((r) => r.completed).length;
+
+  // Rozetleri tamamlanan rota sayısına göre filtrele
+  const earnedBadges = badges.filter((badge) =>
+    badge.requirement.type === "route_completion" &&
+    badge.requirement.count !== undefined
+      ? completedRoutesCount >= badge.requirement.count
+      : false
+  );
+  const lockedBadges = badges.filter((badge) =>
+    badge.requirement.type === "route_completion" &&
+    badge.requirement.count !== undefined
+      ? completedRoutesCount < badge.requirement.count
+      : false
+  );
+
   const totalPlaces = userRoutes.reduce(
     (sum, route) => sum + route.places.length,
     0
@@ -204,11 +130,54 @@ export default function ProfilePage() {
     setUserRoutes(getUserRoutes());
   };
 
+  // Avatar seçme
+  const handleAvatarSelect = (avatar: (typeof avatars)[0]) => {
+    setSelectedAvatar(avatar);
+    localStorage.setItem("edirne_avatar", avatar.id.toString());
+    setShowAvatarModal(false);
+  };
+
   return (
     <>
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50">
         <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Avatar Seçim Modal */}
+          {showAvatarModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+                <button
+                  onClick={() => setShowAvatarModal(false)}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                  Avatar Seç
+                </h3>
+                <div className="grid grid-cols-4 gap-4">
+                  {avatars.map((avatar) => (
+                    <button
+                      key={avatar.id}
+                      onClick={() => handleAvatarSelect(avatar)}
+                      className={`aspect-square rounded-xl border-4 transition-all transform hover:scale-110 flex items-center justify-center bg-white ${
+                        selectedAvatar.id === avatar.id
+                          ? "border-red-500 bg-red-50 shadow-lg"
+                          : "border-gray-200 hover:border-orange-300"
+                      }`}
+                    >
+                      <img
+                        src={avatar.src}
+                        alt={avatar.name}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Profil Header - Geliştirilmiş */}
           <div className="bg-gradient-to-br from-white to-orange-50 rounded-2xl shadow-xl p-8 mb-6 border border-orange-100 relative overflow-hidden">
             {/* Dekoratif arka plan */}
@@ -217,14 +186,19 @@ export default function ProfilePage() {
 
             <div className="relative flex flex-col md:flex-row items-start md:items-center gap-6">
               {/* Avatar */}
-              <div className="relative">
-                <div className="w-28 h-28 bg-gradient-to-br from-red-600 via-orange-500 to-yellow-500 rounded-2xl flex items-center justify-center text-white text-5xl font-bold shadow-2xl transform hover:scale-105 transition-transform">
-                  {user.name.charAt(0)}
-                </div>
-                {/* Level Badge */}
-                <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg flex items-center gap-1">
-                  <Zap className="w-3 h-3" />
-                  Seviye {user.level}
+              <div className="relative group">
+                <div className="w-28 h-28 bg-gray-200 rounded-2xl flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-transform overflow-hidden">
+                  <img
+                    src={selectedAvatar.src}
+                    alt={selectedAvatar.name}
+                    className="w-full h-full object-cover rounded-2xl"
+                  />
+                  <button
+                    onClick={() => setShowAvatarModal(true)}
+                    className="absolute -bottom-2 -right-2 bg-white text-red-600 p-2 rounded-full shadow-lg hover:shadow-xl transition-all border-2 border-red-200 hover:bg-red-50"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
@@ -233,47 +207,57 @@ export default function ProfilePage() {
                 <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
                   {user.name}
                   {earnedBadges.length >= 3 && (
-                    <Crown className="w-7 h-7 text-yellow-500" />
+                    <Crown className="w-7 h-7 text-yellow-500 animate-pulse" />
                   )}
                 </h1>
                 <p className="text-gray-600 mb-3">{user.email}</p>
 
                 {/* İstatistikler Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  <div className="bg-gradient-to-br from-red-500 to-orange-500 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Route className="w-4 h-4" />
-                      <p className="text-xs font-semibold opacity-90">
-                        Tamamlanan
-                      </p>
+                  {[
+                    {
+                      bg: "bg-red-800",
+                      icon: <Route className="w-4 h-4" />,
+                      label: "Tamamlanan",
+                      value: userRoutes.filter((r) => r.completed).length,
+                      sub: "Rota",
+                      valueClass:
+                        "text-sm font-bold text-white leading-relaxed",
+                      subClass: "text-xs text-white",
+                    },
+                    {
+                      bg: "bg-gray-500",
+                      icon: <Trophy className="w-4 h-4" />,
+                      label: "Kazanılan",
+                      value: earnedBadges.length,
+                      sub: "Rozet",
+                      valueClass: "text-2xl font-bold",
+                      subClass: "text-xs text-white",
+                    },
+                    {
+                      bg: "bg-red-700",
+                      icon: <MapPin className="w-4 h-4" />,
+                      label: "Ziyaret",
+                      value: totalPlaces,
+                      sub: "Mekan",
+                      valueClass: "text-2xl font-bold",
+                      subClass: "text-xs opacity-75",
+                    },
+                  ].map((stat, i) => (
+                    <div
+                      key={i}
+                      className={`${stat.bg} text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        {stat.icon}
+                        <p className="text-xs font-semibold opacity-90">
+                          {stat.label}
+                        </p>
+                      </div>
+                      <p className={stat.valueClass}>{stat.value}</p>
+                      <p className={stat.subClass}>{stat.sub}</p>
                     </div>
-                    <p className="text-2xl font-bold">
-                      {userRoutes.filter((r) => r.completed).length}
-                    </p>
-                    <p className="text-xs opacity-75">Rota</p>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-yellow-500 to-orange-500 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Trophy className="w-4 h-4" />
-                      <p className="text-xs font-semibold opacity-90">
-                        Kazanılan
-                      </p>
-                    </div>
-                    <p className="text-2xl font-bold">{earnedBadges.length}</p>
-                    <p className="text-xs opacity-75">Rozet</p>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
-                    <div className="flex items-center gap-2 mb-1">
-                      <MapPin className="w-4 h-4" />
-                      <p className="text-xs font-semibold opacity-90">
-                        Ziyaret
-                      </p>
-                    </div>
-                    <p className="text-2xl font-bold">{totalPlaces}</p>
-                    <p className="text-xs opacity-75">Mekan</p>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -281,50 +265,41 @@ export default function ProfilePage() {
 
           {/* Tab Navigation - Modern Design */}
           <div className="bg-white rounded-2xl shadow-lg mb-6 p-2 flex gap-2 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`flex-1 min-w-[120px] py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
-                activeTab === "overview"
-                  ? "bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg scale-105"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <Target className="w-4 h-4" />
-              Genel Bakış
-            </button>
-            <button
-              onClick={() => setActiveTab("badges")}
-              className={`flex-1 min-w-[120px] py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
-                activeTab === "badges"
-                  ? "bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg scale-105"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <Trophy className="w-4 h-4" />
-              Rozetler
-            </button>
-            <button
-              onClick={() => setActiveTab("routes")}
-              className={`flex-1 min-w-[120px] py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
-                activeTab === "routes"
-                  ? "bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg scale-105"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <Map className="w-4 h-4" />
-              Rotalarım
-            </button>
-            <button
-              onClick={() => setActiveTab("favorites")}
-              className={`flex-1 min-w-[120px] py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
-                activeTab === "favorites"
-                  ? "bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg scale-105"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <Heart className="w-4 h-4" />
-              Favorilerim
-            </button>
+            {[
+              {
+                key: "overview",
+                icon: <Target className="w-4 h-4" />,
+                label: "Genel Bakış",
+              },
+              {
+                key: "badges",
+                icon: <Trophy className="w-4 h-4" />,
+                label: "Rozetler",
+              },
+              {
+                key: "routes",
+                icon: <Map className="w-4 h-4" />,
+                label: "Rotalarım",
+              },
+              {
+                key: "favorites",
+                icon: <Heart className="w-4 h-4" />,
+                label: "Favorilerim",
+              },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex-1 min-w-[120px] py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                  activeTab === tab.key
+                    ? "bg-gradient-to-r from-red-600 to-gray-800 text-white shadow-lg scale-105"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           {/* Content Area */}
@@ -339,9 +314,9 @@ export default function ProfilePage() {
                   </h2>
 
                   <div className="grid md:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
+                    <div className="bg-gradient-to-br from-gray-50 to-red-50 p-6 rounded-xl border border-red-200">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-gray-200 rounded-lg flex items-center justify-center">
                           <Clock className="w-6 h-6 text-white" />
                         </div>
                         <div>
@@ -421,7 +396,7 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* Rozetler */}
+            {/* Rozetler - Geliştirilmiş Tasarım */}
             {activeTab === "badges" && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
@@ -435,29 +410,31 @@ export default function ProfilePage() {
                       Kazanılan Rozetler
                     </h3>
                     <span className="text-sm text-gray-500">
-                      {earnedBadges.length} / 3
+                      {earnedBadges.length} / {badges.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {earnedBadges.map((badge) => (
                       <div
                         key={badge.id}
-                        className="group relative bg-white border-2 border-green-200 rounded-xl p-6 hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer"
+                        className={`group relative bg-gradient-to-br rounded-2xl p-6 shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer`}
                       >
-                        <div className="absolute top-2 right-2 w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
-                          <CheckCircle2 className="w-4 h-4 text-white" />
+                        <div className="absolute top-3 right-3 w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg">
+                          <CheckCircle2 className="w-5 h-5 text-red-600" />
                         </div>
                         <div className="text-center">
-                          <div className="text-5xl mb-3 animate-bounce">
+                          <div className="text-6xl mb-3 filter drop-shadow-lg transform group-hover:scale-110 transition-transform">
                             {badge.icon}
                           </div>
-                          <h4 className="font-bold text-gray-900 mb-2">
+                          <h4 className="font-bold text-black text-lg mb-2 drop-shadow-md">
                             {badge.name}
                           </h4>
-                          <p className="text-xs text-gray-600 leading-relaxed">
+                          <p className="text-sm text-red-500 leading-relaxed">
                             {badge.description}
                           </p>
                         </div>
+                        {/* Parlama efekti */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </div>
                     ))}
                   </div>
@@ -470,22 +447,24 @@ export default function ProfilePage() {
                     </h3>
                     <span className="text-sm text-gray-500">Yeni hedefler</span>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[...Array(3 - earnedBadges.length)].map((_, i) => (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {lockedBadges.map((badge) => (
                       <div
-                        key={i}
-                        className="group relative bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-gray-400 transition-all cursor-pointer opacity-60 hover:opacity-80"
+                        key={badge.id}
+                        className="group relative bg-gray-100 border-2 border-gray-300 rounded-2xl p-6 hover:border-gray-400 transition-all cursor-pointer"
                       >
-                        <div className="absolute top-2 right-2 w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center">
-                          <Lock className="w-3 h-3 text-white" />
+                        <div className="absolute top-3 right-3 w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center shadow-md">
+                          <Lock className="w-4 h-4 text-gray-600" />
                         </div>
-                        <div className="text-center">
-                          <div className="text-5xl mb-3 grayscale">🎖️</div>
-                          <h4 className="font-bold text-gray-700 mb-2">
-                            Kilitli
+                        <div className="text-center opacity-60 group-hover:opacity-80 transition-opacity">
+                          <div className="text-6xl mb-3 grayscale filter">
+                            {badge.icon}
+                          </div>
+                          <h4 className="font-bold text-gray-700 text-lg mb-2">
+                            {badge.name}
                           </h4>
-                          <p className="text-xs text-gray-500 leading-relaxed">
-                            Yeni rozet için daha fazla rota tamamla
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            {badge.description}
                           </p>
                         </div>
                       </div>
@@ -518,12 +497,6 @@ export default function ProfilePage() {
                             {route.name}
                           </h3>
                           <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-2">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {new Date(route.createdAt).toLocaleDateString(
-                                "tr-TR"
-                              )}
-                            </span>
                             <span className="flex items-center gap-1">
                               <MapPin className="w-4 h-4" />
                               {route.places.length} mekan
