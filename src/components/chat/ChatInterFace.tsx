@@ -1,9 +1,14 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { X, Minus, Send, Loader2, MapPin, Clock, Info } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
+import { X, Minus, Send, Loader2, Clock, Info } from "lucide-react";
+const chatboticon = "/assets/chatbot/chatbot.png";
 import { getChatResponse } from "./chatUtil";
 
+// TODO: deneme
+// ? deneme 2;
+// ! deneme
 interface Message {
   id: string;
   text: string;
@@ -58,10 +63,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }, [messages]);
 
   const handleSendMessage = async (text: string = inputValue) => {
+    console.log("handleSendMessage called", text);
     if (!text.trim()) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       text: text.trim(),
       sender: "user",
       timestamp: new Date(),
@@ -71,19 +77,30 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setInputValue("");
     setIsLoading(true);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botResponse = getChatResponse(text.trim());
+    try {
+      const botResponse = await getChatResponse(text.trim());
       const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: uuidv4(),
         text: botResponse.text,
         sender: "bot",
         timestamp: new Date(),
         suggestions: botResponse.suggestions,
       };
       setMessages((prev) => [...prev, botMessage]);
+    } catch (e) {
+      console.error("handleSendMessage error", e);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: uuidv4(),
+          text: "Bir hata oluştu. Lütfen tekrar deneyin.",
+          sender: "bot",
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -97,12 +114,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       {/* Header */}
       <div className="bg-white p-4 flex items-center justify-between border-b-2 border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-            <MapPin className="w-5 h-5 text-red-500" />
+          <div className=" rounded-full flex items-center justify-center overflow-hidden">
+            <img
+              src={chatboticon}
+              alt="Chatbot Icon"
+              className="w-11 h-11 object-cover"
+            />
           </div>
           <div>
-            <h3 className="text-gray-800 font-bold text-lg">
-              EdirneGez Asistan
+            <h3 className="text-gray-800 font-bold text-lg text-red-700">
+              Sanal Kızan
             </h3>
           </div>
         </div>

@@ -92,7 +92,8 @@ function ConfirmModal({
 }
 
 export default function EdirneRoutePage() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
+  const userId = user?.id;
 
   const [showClearModal, setShowClearModal] = useState(false);
   const [shareUrl, setShareUrl] = useState<string>("");
@@ -176,8 +177,8 @@ export default function EdirneRoutePage() {
     setCopySuccess(false);
     try {
       // Loginli kullanıcı ise localStorage'a kaydet
-      if (isLoggedIn) {
-        addUserRoute({
+      if (isLoggedIn && userId) {
+        addUserRoute(userId, {
           name: "Edirne Rotam",
           places: selectedPlaces.map((p) => p.name),
         });
@@ -708,8 +709,8 @@ export default function EdirneRoutePage() {
                                 setSaveSuccess(false);
                                 setCopySuccess(false);
                                 try {
-                                  if (isLoggedIn) {
-                                    addUserRoute({
+                                  if (isLoggedIn && userId) {
+                                    addUserRoute(userId, {
                                       name: routeName || "Edirne Rotam",
                                       places: selectedPlaces.map((p) => p.name),
                                     });

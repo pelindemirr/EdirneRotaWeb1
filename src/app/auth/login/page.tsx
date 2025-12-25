@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { login as loginApi } from "@/utils/api/auth";
 import {
   ArrowLeft,
   Eye,
@@ -19,6 +20,7 @@ import {
 
 const hiddenSpots = [
   {
+    id: 1,
     name: "Saroz Körfezi",
     desc: "Sakin koylarıyla Edirne'nin gizli sahili.",
     icon: "🏖️",
@@ -26,6 +28,7 @@ const hiddenSpots = [
     image: "saroz.jpg",
   },
   {
+    id: 2,
     name: "Gala Gölü Milli Parkı",
     desc: "Kuş sesleriyle dolu doğa rotası.",
     icon: "🦢",
@@ -33,6 +36,7 @@ const hiddenSpots = [
     image: "galagolu.png",
   },
   {
+    id: 3,
     name: "Enez Antik Kenti",
     desc: "Tarihle iç içe deniz manzarası.",
     icon: "🏛️",
@@ -40,6 +44,7 @@ const hiddenSpots = [
     image: "enezkalesi.jpg",
   },
   {
+    id: 4,
     name: "Batık Gemiler (Saroz)",
     desc: "Dalgıçlar için büyüleyici su altı dünyası.",
     icon: "⚓",
@@ -47,6 +52,7 @@ const hiddenSpots = [
     image: "batikgemi.jpg",
   },
   {
+    id: 5,
     name: "Meriç Nehri Kıyısı",
     desc: "Doğanın sesiyle huzurlu yürüyüş rotası.",
     icon: "🌊",
@@ -54,6 +60,7 @@ const hiddenSpots = [
     image: "meric.jpg",
   },
   {
+    id: 6,
     name: "Lavanta Bahçeleri ",
     desc: "Mor tarlalar içinde fotoğraf molası.",
     icon: "🏘️",
@@ -85,19 +92,6 @@ export default function EnhancedLoginPage() {
   const [focusedField, setFocusedField] = useState("");
   const [currentSpot, setCurrentSpot] = useState(0);
 
-  const mockUsers = {
-    "enginmeric@gmail.com": {
-      password: "123",
-      name: "Engin Meriç",
-      id: "1",
-    },
-    "pelindemir@gmail.com": {
-      password: "123",
-      name: "Pelin Demir",
-      id: "2",
-    },
-  };
-
   // Auto-slide carousel
   useEffect(() => {
     const timer = setInterval(() => {
@@ -111,31 +105,22 @@ export default function EnhancedLoginPage() {
     setError("");
     setIsLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const user = (
-      mockUsers as Record<string, (typeof mockUsers)["enginmeric@gmail.com"]>
-    )[formData.email];
-
-    if (!user) {
-      setError("Bu e-posta adresi kayıtlı değil!");
+    try {
+      const result = await loginApi(formData.email, formData.password);
+      if (result.status === 200) {
+        // Başarılı giriş
+        login({ id: "1", name: formData.email, email: formData.email }); // id ve name backend'den gelirse güncellenmeli
+        localStorage.removeItem("characterModalShown");
+        setIsLoading(false);
+        router.push("/");
+      } else {
+        setError(result.message || "Giriş başarısız!");
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
       setIsLoading(false);
-      return;
     }
-
-    if (user.password !== formData.password) {
-      setError("Şifre hatalı!");
-      setIsLoading(false);
-      return;
-    }
-
-    login({ id: user.id, name: user.name, email: formData.email });
-
-    // Karakter seçim modalının açılması için localStorage'ı temizle
-    localStorage.removeItem("characterModalShown");
-
-    setIsLoading(false);
-    router.push("/");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -199,8 +184,8 @@ export default function EnhancedLoginPage() {
                   className="flex transition-transform duration-700 ease-in-out"
                   style={{ transform: `translateX(-${currentSpot * 100}%)` }}
                 >
-                  {hiddenSpots.map((spot, index) => (
-                    <div key={index} className="min-w-full px-2">
+                  {hiddenSpots.map((spot) => (
+                    <div key={spot.id} className="min-w-full px-2">
                       <div
                         className={
                           "p-8 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col items-center bg-white"
@@ -240,9 +225,9 @@ export default function EnhancedLoginPage() {
 
                 {/* Dots Indicator */}
                 <div className="flex gap-2">
-                  {hiddenSpots.map((_, index) => (
+                  {hiddenSpots.map((spot, index) => (
                     <button
-                      key={index}
+                      key={spot.id}
                       onClick={() => setCurrentSpot(index)}
                       className={`transition-all duration-300 rounded-full ${
                         index === currentSpot

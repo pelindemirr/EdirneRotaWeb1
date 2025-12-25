@@ -47,7 +47,7 @@ const HiddenGemsSlider = () => {
       image: "/assets/images/login/batikgemi.jpg",
     },
     {
-      id: 5,
+      id: 6,
       title: "Trakya Fest",
       description: "Eğlenmek ve yazın tadını çıkarmak için müzik festivali.",
       location: "Danışment ",

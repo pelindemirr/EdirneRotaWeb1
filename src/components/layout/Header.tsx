@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
+import CharacterSelectModal from "../CharacterSelectModal";
 function Header() {
   const [showCharacterModal, setShowCharacterModal] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
@@ -125,100 +126,12 @@ function Header() {
     <>
       {/* Character Selection Modal */}
       {showCharacterModal && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center">
-          {/* Blurred overlay */}
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            style={{ zIndex: 1 }}
-          />
-          {/* Modal content */}
-          <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full flex flex-col items-center animate-fadeIn">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-yellow-400 mb-4 shadow-lg">
-              <span role="img" aria-label="character" className="text-3xl">
-                🧭
-              </span>
-            </div>
-            <h2 className="text-2xl font-bold mb-2 text-red-700">
-              Karakter Tipini Seç
-            </h2>
-            <p className="mb-6 text-gray-600 text-center">
-              Sana en uygun rotayı önerebilmemiz için lütfen bir karakter tipi
-              seç:
-            </p>
-            <div className="grid grid-cols-2 gap-3 w-full">
-              <button
-                onClick={() => handleCharacterSelect("Maceracı")}
-                className={`py-3 rounded-lg font-semibold text-sm transition border-2 ${
-                  selectedCharacter === "Maceracı"
-                    ? "bg-red-600 text-white border-red-700 shadow-lg"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-red-400"
-                }`}
-              >
-                Maceracı
-              </button>
-              <button
-                onClick={() => handleCharacterSelect("Kültür Meraklısı")}
-                className={`py-3 rounded-lg font-semibold text-sm transition border-2 ${
-                  selectedCharacter === "Kültür Meraklısı"
-                    ? "bg-red-600 text-white border-red-700 shadow-lg"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-red-400"
-                }`}
-              >
-                Kültür Meraklısı
-              </button>
-              <button
-                onClick={() => handleCharacterSelect("Gurme")}
-                className={`py-3 rounded-lg font-semibold text-sm transition border-2 ${
-                  selectedCharacter === "Gurme"
-                    ? "bg-red-600 text-white border-red-700 shadow-lg"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-red-400"
-                }`}
-              >
-                Gurme
-              </button>
-
-              <button
-                onClick={() => handleCharacterSelect("Doğa Sever")}
-                className={`py-3 rounded-lg font-semibold text-sm transition border-2 ${
-                  selectedCharacter === "Doğa Sever"
-                    ? "bg-red-600 text-white border-red-700 shadow-lg"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-red-400"
-                }`}
-              >
-                Doğa Sever
-              </button>
-              <button
-                onClick={() => handleCharacterSelect("Fotoğrafçı")}
-                className={`py-3 rounded-lg font-semibold text-sm transition border-2 ${
-                  selectedCharacter === "Fotoğrafçı"
-                    ? "bg-red-600 text-white border-red-700 shadow-lg"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-red-400"
-                }`}
-              >
-                Fotoğrafçı
-              </button>
-
-              <button
-                onClick={() => handleCharacterSelect("Sanatsever")}
-                className={`py-3 rounded-lg font-semibold text-sm transition border-2 ${
-                  selectedCharacter === "Sanatsever"
-                    ? "bg-red-600 text-white border-red-700 shadow-lg"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-red-400"
-                }`}
-              >
-                Sanatsever
-              </button>
-            </div>
-            {showRouteButton && (
-              <button
-                onClick={handleShowRoute}
-                className="mt-6 w-full py-3 rounded-lg bg-gradient-to-r from-red-600 to-yellow-500 text-white font-bold shadow-lg hover:from-red-700 hover:to-yellow-600 transition text-lg"
-              >
-                Rota Gör
-              </button>
-            )}
-          </div>
-        </div>
+        <CharacterSelectModal
+          selectedCharacter={selectedCharacter}
+          onSelect={handleCharacterSelect}
+          onShowRoute={handleShowRoute}
+          showRouteButton={showRouteButton}
+        />
       )}
       <header
         className={`bg-white shadow-lg sticky top-0 z-50 border-b border-red-100 ${

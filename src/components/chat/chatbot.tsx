@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import ChatInterface from "./ChatInterFace";
 import { useAuth } from "@/contexts/AuthContext";
+const chatboticon = "/assets/chatbot/chatbot.png";
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,24 +43,12 @@ const Chatbot = () => {
       >
         <div className="relative">
           {/* Ana İkon */}
-          <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-orange-600 rounded-full flex items-center justify-center shadow-2xl shadow-red-500/50 transition-all group-hover:shadow-red-500/70">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-              />
-            </svg>
-          </div>
-
+          <img
+            src={chatboticon}
+            className="w-26 h-26 rounded-full shadow-lg animate-bounce"
+          />
           {/* Pulse Efekti */}
-          <div className="absolute inset-0 rounded-full bg-red-500 opacity-40 animate-ping" />
+          <div className="absolute -inset-1 rounded-full border border-red-500" />
 
           {/* Notification Badge */}
           {isMinimized && (

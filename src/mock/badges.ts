@@ -2,6 +2,9 @@ import { Badge } from "@/types/badges";
 
 // Örnek rozet verileri - sen buraya kendi rozetlerini ekleyebilirsin
 export const allBadges: Badge[] = [
+  // =========================
+  // MEVCUT ROZETLER (AYNEN)
+  // =========================
   {
     id: "first-route",
     name: "İlk Adım",
@@ -41,10 +44,74 @@ export const allBadges: Badge[] = [
     isUnlocked: false,
     rarity: "rare",
   },
+
+  // =========================
+  // YENİ – KOLAY TAMAMLANAN
+  // =========================
+  {
+    id: "first-place",
+    name: "Keşfe Başladın",
+    description: "İlk tarihi mekanı ziyaret ettin",
+    icon: "📍",
+    category: "explorer",
+    requirement: {
+      type: "place_visit",
+      count: 1,
+    },
+    isUnlocked: false,
+    rarity: "common",
+  },
+  {
+    id: "three-places",
+    name: "Gezgin Ruh",
+    description: "3 farklı mekanı ziyaret ettin",
+    icon: "👣",
+    category: "explorer",
+    requirement: {
+      type: "place_visit",
+      count: 3,
+    },
+    isUnlocked: false,
+    rarity: "common",
+  },
+
+  // =========================
+  // KÜLTÜR
+  // =========================
+  {
+    id: "culture-lover",
+    name: "Kültür Meraklısı",
+    description: "5 tarihi mekanı ziyaret ettin",
+    icon: "🏛️",
+    category: "culture",
+    requirement: {
+      type: "place_visit",
+      count: 5,
+    },
+    isUnlocked: false,
+    rarity: "rare",
+  },
+
+  // =========================
+  // YEMEK
+  // =========================
+  {
+    id: "first-food",
+    name: "Lezzet Avcısı",
+    description: "İlk gastronomi noktasını ziyaret ettin",
+    icon: "🍴",
+    category: "food",
+    requirement: {
+      type: "place_visit",
+      count: 1,
+    },
+    isUnlocked: false,
+    rarity: "common",
+  },
   {
     id: "food-lover",
     name: "Gurme",
-    description: "Tüm gastronomi noktalarını ziyaret ettin",
+    description: "10 farklı gastronomi noktasını ziyaret ettin",
     icon: "🍽️",
     category: "food",
     requirement: {
@@ -54,10 +121,27 @@ export const allBadges: Badge[] = [
     isUnlocked: false,
     rarity: "epic",
   },
+
+  // =========================
+  // UZUN VADE
+  // =========================
+  {
+    id: "ten-routes",
+    name: "Usta Gezgin",
+    description: "10 rota tamamladın",
+    icon: "🚀",
+    category: "explorer",
+    requirement: {
+      type: "route_completion",
+      count: 10,
+    },
+    isUnlocked: false,
+    rarity: "epic",
+  },
   {
     id: "edirne-master",
     name: "Edirne Ustası",
-    description: "Tüm tarihi mekanları keşfettin!",
+    description: "50 farklı mekanı keşfettin!",
     icon: "👑",
     category: "special",
     requirement: {

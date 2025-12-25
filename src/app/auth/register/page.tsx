@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { register as registerApi } from "@/utils/api/auth";
+import { useRegisterStore } from "@/stores/registerStore";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -19,6 +21,7 @@ import {
 
 const hiddenSpots = [
   {
+    id: 1,
     name: "Saroz Körfezi",
     desc: "Sakin koylarıyla Edirne'nin gizli sahili.",
     icon: "🏖️",
@@ -26,6 +29,7 @@ const hiddenSpots = [
     image: "saroz.jpg",
   },
   {
+    id: 2,
     name: "Gala Gölü Milli Parkı",
     desc: "Kuş sesleriyle dolu doğa rotası.",
     icon: "🦢",
@@ -33,6 +37,7 @@ const hiddenSpots = [
     image: "galagolu.png",
   },
   {
+    id: 3,
     name: "Enez Antik Kenti",
     desc: "Tarihle iç içe deniz manzarası.",
     icon: "🏛️",
@@ -40,6 +45,7 @@ const hiddenSpots = [
     image: "enezkalesi.jpg",
   },
   {
+    id: 4,
     name: "Batık Gemiler (Saroz)",
     desc: "Dalgıçlar için büyüleyici su altı dünyası.",
     icon: "⚓",
@@ -47,6 +53,7 @@ const hiddenSpots = [
     image: "batikgemi.jpg",
   },
   {
+    id: 5,
     name: "Meriç Nehri Kıyısı",
     desc: "Doğanın sesiyle huzurlu yürüyüş rotası.",
     icon: "🌊",
@@ -54,6 +61,7 @@ const hiddenSpots = [
     image: "meric.jpg",
   },
   {
+    id: 6,
     name: "Lavanta Bahçeleri ",
     desc: "Mor tarlalar içinde fotoğraf molası.",
     icon: "🏘️",
@@ -88,12 +96,11 @@ export default function EnhancedRegisterPage() {
     return () => clearInterval(timer);
   }, []);
 
+  const registerStore = useRegisterStore();
   const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 1200));
 
     // Basic validation
     if (!formData.name.trim()) {
@@ -120,9 +127,25 @@ export default function EnhancedRegisterPage() {
       return;
     }
 
-    alert(`Hoş geldiniz ${formData.name}! Hesabınız başarıyla oluşturuldu. ✨`);
-    setIsLoading(false);
-    router.push("/auth/login");
+    // API'ye istek at
+    try {
+      const result = await registerApi(
+        formData.name,
+        formData.email,
+        formData.password
+      );
+      if (result.status === 200) {
+        registerStore.register(formData.name, formData.email);
+        setIsLoading(false);
+        router.push("/auth/login");
+      } else {
+        setError(result.message || "Kayıt başarısız!");
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

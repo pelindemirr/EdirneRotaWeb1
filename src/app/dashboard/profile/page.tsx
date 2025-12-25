@@ -1,5 +1,7 @@
 "use client";
 
+import { Badge } from "@/types/badges";
+
 import {
   Award,
   MapPin,
@@ -45,23 +47,24 @@ const avatars = [
 ];
 
 // Kullanıcıya ait rotalar (localStorage'dan)
-function useUserRoutes() {
+function useUserRoutes(userId?: string) {
   const [routes, setRoutes] = useState<UserRoute[]>([]);
   useEffect(() => {
-    setRoutes(getUserRoutes());
-    const onStorage = () => setRoutes(getUserRoutes());
+    if (!userId) return;
+    setRoutes(getUserRoutes(userId));
+    const onStorage = () => setRoutes(getUserRoutes(userId));
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, []);
+  }, [userId]);
   return [routes, setRoutes] as const;
 }
-
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(avatars[0]);
   const { user: authUser } = useAuth();
-  const [userRoutes, setUserRoutes] = useUserRoutes();
+  const userId = authUser?.id;
+  const [userRoutes, setUserRoutes] = useUserRoutes(userId);
 
   // Favori yerler: localStorage'dan id'leri alıp places ile eşleştir
   const [favoritePlaces, setFavoritePlaces] = useState<Place[]>([]);
@@ -97,37 +100,63 @@ export default function ProfilePage() {
     nextLevelXp: 500,
   };
   // Tamamlanan rota sayısı
-  const completedRoutesCount = userRoutes.filter((r) => r.completed).length;
+  const completedRoutesCount = userRoutes.filter(
+    (r: UserRoute) => r.completed
+  ).length;
 
-  // Rozetleri tamamlanan rota sayısına göre filtrele
-  const earnedBadges = badges.filter((badge) =>
-    badge.requirement.type === "route_completion" &&
-    badge.requirement.count !== undefined
-      ? completedRoutesCount >= badge.requirement.count
-      : false
+  // Rozetlerin kazanılma durumunu dinamik olarak hesapla
+  function isBadgeUnlocked(
+    badge: Badge,
+    userRoutes: UserRoute[],
+    favoritePlaces: Place[]
+  ) {
+    if (
+      badge.requirement.type === "route_completion" &&
+      badge.requirement.count
+    ) {
+      const completed = userRoutes.filter((r: UserRoute) => r.completed).length;
+      return completed >= badge.requirement.count;
+    }
+    if (badge.requirement.type === "place_visit" && badge.requirement.count) {
+      return favoritePlaces.length >= badge.requirement.count;
+    }
+    // Belirli mekanlar için
+    if (
+      badge.requirement.type === "place_visit" &&
+      badge.requirement.specific
+    ) {
+      return badge.requirement.specific.every((id: string) =>
+        favoritePlaces.some((p) => p.id.toString() === id)
+      );
+    }
+    // Diğer tipler için ek mantık eklenebilir
+    return false;
+  }
+
+  const earnedBadges = badges.filter((badge: Badge) =>
+    isBadgeUnlocked(badge, userRoutes, favoritePlaces)
   );
-  const lockedBadges = badges.filter((badge) =>
-    badge.requirement.type === "route_completion" &&
-    badge.requirement.count !== undefined
-      ? completedRoutesCount < badge.requirement.count
-      : false
+  const lockedBadges = badges.filter(
+    (badge: Badge) => !isBadgeUnlocked(badge, userRoutes, favoritePlaces)
   );
 
   const totalPlaces = userRoutes.reduce(
-    (sum, route) => sum + route.places.length,
+    (sum: number, route: UserRoute) => sum + route.places.length,
     0
   );
   const progressPercentage = (user.xp / user.nextLevelXp) * 100;
 
   // Rota tamamlandı/tamamlanmadı işaretleme
   const handleToggleCompleted = (route: UserRoute) => {
-    setRouteCompleted(route.id, !route.completed);
-    setUserRoutes(getUserRoutes());
+    if (!userId) return;
+    setRouteCompleted(userId, route.id, !route.completed);
+    setUserRoutes(getUserRoutes(userId));
   };
   // Rota silme
   const handleDeleteRoute = (route: UserRoute) => {
-    deleteUserRoute(route.id);
-    setUserRoutes(getUserRoutes());
+    if (!userId) return;
+    deleteUserRoute(userId, route.id);
+    setUserRoutes(getUserRoutes(userId));
   };
 
   // Avatar seçme
@@ -348,7 +377,7 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       <p className="text-xs text-gray-500">
-                        {earnedBadges.length}/3 rozet kazandın
+                        {earnedBadges.length}/rozet kazandın
                       </p>
                     </div>
                   </div>
